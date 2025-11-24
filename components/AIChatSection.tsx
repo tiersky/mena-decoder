@@ -1,0 +1,83 @@
+'use client';
+
+import React, { memo } from 'react';
+import { Bot, User, Send } from 'lucide-react';
+
+interface AIChatSectionProps {
+    messages: any[];
+    isLoading: boolean;
+    input: string;
+    onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onSubmit: (e: React.FormEvent) => void;
+}
+
+const AIChatSection = memo(function AIChatSection({
+    messages,
+    isLoading,
+    input,
+    onInputChange,
+    onSubmit
+}: AIChatSectionProps) {
+    return (
+        <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-4">
+                <Bot className="w-6 h-6 text-blue-600" />
+                <h3 className="text-lg font-semibold text-gray-800">AI Strategic Analyst</h3>
+            </div>
+
+            <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
+                {messages.map((m: any) => (
+                    <div
+                        key={m.id}
+                        className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                        <div
+                            className={`flex gap-2 max-w-[80%] ${m.role === 'user'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-900'
+                                } rounded-lg p-3`}
+                        >
+                            {m.role === 'assistant' && <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />}
+                            <div className="whitespace-pre-wrap text-sm">
+                                {m.parts
+                                    ? m.parts.map((part: any, i: number) => (
+                                        <span key={i}>{part.type === 'text' ? part.text : ''}</span>
+                                    ))
+                                    : m.content}
+                            </div>
+                            {m.role === 'user' && <User className="w-5 h-5 flex-shrink-0 mt-0.5" />}
+                        </div>
+                    </div>
+                ))}
+                {isLoading && (
+                    <div className="flex gap-3 justify-start">
+                        <div className="flex gap-2 bg-gray-100 text-gray-900 rounded-lg p-3">
+                            <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                            <div className="animate-pulse">Analyzing...</div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <form onSubmit={onSubmit} className="flex gap-2">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={onInputChange}
+                    placeholder="Ask a strategic question..."
+                    className="flex-1 rounded-md border-gray-300 text-sm p-3 border focus:ring-2 focus:ring-blue-500"
+                    disabled={isLoading}
+                />
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                >
+                    <Send className="w-4 h-4" />
+                </button>
+            </form>
+        </div>
+    );
+});
+
+export default AIChatSection;

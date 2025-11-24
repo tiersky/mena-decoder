@@ -1,0 +1,351 @@
+'use client';
+
+import React from 'react';
+import {
+    LineChart,
+    Line,
+    BarChart,
+    Bar,
+    ScatterChart,
+    Scatter,
+    PieChart,
+    Pie,
+    Cell,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from 'recharts';
+import { parseCurrency, formatChartNumber, formatCurrency } from '@/utils/format';
+
+interface ChartSectionProps {
+    data: any[];
+}
+
+const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+
+export default function ChartSection({ data }: ChartSectionProps) {
+    // Brand Budget Over Time
+    const brandBudgetData = React.useMemo(() => {
+        const brandBudgetByMonth: Record<string, Record<string, number>> = {};
+
+        data.forEach((item) => {
+            if (!item.date || !item.brand || !item.budget) return;
+
+            const date = new Date(item.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const brand = item.brand;
+            const budget = parseCurrency(item.budget);
+
+            if (!brandBudgetByMonth[monthKey]) {
+                brandBudgetByMonth[monthKey] = {};
+            }
+            brandBudgetByMonth[monthKey][brand] = (brandBudgetByMonth[monthKey][brand] || 0) + budget;
+        });
+
+        const sortedMonths = Object.keys(brandBudgetByMonth).sort();
+        const allBrands = Array.from(
+            new Set(data.map((item) => item.brand).filter(Boolean))
+        ).slice(0, 8); // Limit to top 8 brands for better visualization
+
+        return sortedMonths.map((month) => ({
+            month,
+            ...allBrands.reduce((acc, brand) => {
+                acc[brand] = brandBudgetByMonth[month][brand] || 0;
+                return acc;
+            }, {} as Record<string, number>),
+        }));
+    }, [data]);
+
+    // Top brands by budget
+    const topBrands = React.useMemo(() => {
+        const brandTotals: Record<string, number> = {};
+
+        data.forEach((item) => {
+            if (!item.brand || !item.budget) return;
+            const brand = item.brand;
+            const budget = parseCurrency(item.budget);
+            brandTotals[brand] = (brandTotals[brand] || 0) + budget;
+        });
+
+        return Object.entries(brandTotals)
+            .map(([brand, budget]) => ({ brand, budget }))
+            .sort((a, b) => b.budget - a.budget)
+            .slice(0, 15);
+    }, [data]);
+
+    // Category breakdown (Pie Chart)
+    const categoryData = React.useMemo(() => {
+        const categoryTotals: Record<string, number> = {};
+
+        data.forEach((item) => {
+            if (!item.category || !item.budget) return;
+            const category = item.category;
+            const budget = parseCurrency(item.budget);
+            categoryTotals[category] = (categoryTotals[category] || 0) + budget;
+        });
+
+        return Object.entries(categoryTotals)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 8);
+    }, [data]);
+
+    // Media vs Channel Budget (Scatter)
+    const mediaChannelData = React.useMemo(() => {
+        const mediaChannelTotals: Record<string, { campaigns: number; budget: number }> = {};
+
+        data.forEach((item) => {
+            if (!item.media || !item.budget) return;
+            const key = `${item.media} - ${item.channel || 'Unknown'}`;
+            const budget = parseCurrency(item.budget);
+
+            if (!mediaChannelTotals[key]) {
+                mediaChannelTotals[key] = { campaigns: 0, budget: 0 };
+            }
+            mediaChannelTotals[key].campaigns += 1;
+            mediaChannelTotals[key].budget += budget;
+        });
+
+        return Object.entries(mediaChannelTotals)
+            .map(([name, data]) => ({
+                name,
+                campaigns: data.campaigns,
+                budget: data.budget,
+            }))
+            .slice(0, 50);
+    }, [data]);
+
+    // Brand x Country Heatmap Data
+    const brandCountryHeatmap = React.useMemo(() => {
+        const heatmapData: Record<string, Record<string, number>> = {};
+
+        data.forEach((item) => {
+            if (!item.brand || !item.country || !item.budget) return;
+            const brand = item.brand;
+            const country = item.country;
+            const budget = parseCurrency(item.budget);
+
+            if (!heatmapData[brand]) {
+                heatmapData[brand] = {};
+            }
+            heatmapData[brand][country] = (heatmapData[brand][country] || 0) + budget;
+        });
+
+        // Get top 10 brands
+        const topBrandNames = Object.entries(heatmapData)
+            .map(([brand, countries]) => ({
+                brand,
+                total: Object.values(countries).reduce((a, b) => a + b, 0),
+            }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 10)
+            .map((item) => item.brand);
+
+        // Convert to array format for visualization
+        const allCountries = Array.from(new Set(data.map((item) => item.country).filter(Boolean)));
+
+        return topBrandNames.map((brand) => ({
+            brand,
+            ...allCountries.reduce((acc, country) => {
+                acc[country] = heatmapData[brand][country] || 0;
+                return acc;
+            }, {} as Record<string, number>),
+        }));
+    }, [data]);
+
+    const allCountries = React.useMemo(
+        () => Array.from(new Set(data.map((item) => item.country).filter(Boolean))),
+        [data]
+    );
+
+    return (
+        <div className="space-y-8">
+            {/* Brand x Country Heatmap */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Brand Spend by Country (Heatmap)</h2>
+                <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={brandCountryHeatmap}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                            dataKey="brand"
+                            angle={-35}
+                            textAnchor="end"
+                            height={120}
+                            fontSize={11}
+                            interval={0}
+                        />
+                        <YAxis
+                            tickFormatter={formatChartNumber}
+                            fontSize={11}
+                            width={60}
+                        />
+                        <Tooltip
+                            formatter={(value: any) => formatCurrency(Number(value))}
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px'
+                            }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
+                        {allCountries.map((country, index) => (
+                            <Bar
+                                key={country}
+                                dataKey={country}
+                                stackId="a"
+                                fill={COLORS[index % COLORS.length]}
+                            />
+                        ))}
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Top Brands by Budget */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Top 15 Brands by Budget</h2>
+                <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={topBrands} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                            type="number"
+                            tickFormatter={formatChartNumber}
+                            fontSize={11}
+                        />
+                        <YAxis
+                            dataKey="brand"
+                            type="category"
+                            width={120}
+                            fontSize={10}
+                        />
+                        <Tooltip
+                            formatter={(value: any) => formatCurrency(Number(value))}
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px'
+                            }}
+                        />
+                        <Bar
+                            dataKey="budget"
+                            fill="#3B82F6"
+                            radius={[0, 4, 4, 0]}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Budget by Category</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                                data={categoryData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={(entry: any) => entry.name}
+                                outerRadius={100}
+                                fill="#8884d8"
+                                dataKey="value"
+                            >
+                                {categoryData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                formatter={(value: any) => formatCurrency(Number(value))}
+                                contentStyle={{
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px'
+                                }}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Media Channel Scatter */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Media/Channel: Campaigns vs Budget</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <ScatterChart>
+                            <CartesianGrid stroke="#e5e7eb" />
+                            <XAxis
+                                dataKey="campaigns"
+                                name="Campaigns"
+                                fontSize={11}
+                            />
+                            <YAxis
+                                dataKey="budget"
+                                name="Budget"
+                                tickFormatter={formatChartNumber}
+                                fontSize={11}
+                                width={60}
+                            />
+                            <Tooltip
+                                cursor={{ strokeDasharray: '3 3' }}
+                                formatter={(value: any, name: any) => {
+                                    if (name === 'Budget') return formatCurrency(Number(value));
+                                    return value;
+                                }}
+                                contentStyle={{
+                                    backgroundColor: '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px'
+                                }}
+                            />
+                            <Scatter data={mediaChannelData} fill="#8B5CF6" />
+                        </ScatterChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Brand Budget Trends */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Brand Budget Trends Over Time</h2>
+                <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={brandBudgetData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                            dataKey="month"
+                            fontSize={11}
+                        />
+                        <YAxis
+                            tickFormatter={formatChartNumber}
+                            fontSize={11}
+                            width={60}
+                        />
+                        <Tooltip
+                            formatter={(value: any) => formatCurrency(Number(value))}
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px'
+                            }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
+                        {Object.keys(brandBudgetData[0] || {})
+                            .filter((key) => key !== 'month')
+                            .slice(0, 8)
+                            .map((brand, index) => (
+                                <Line
+                                    key={brand}
+                                    type="monotone"
+                                    dataKey={brand}
+                                    stroke={COLORS[index % COLORS.length]}
+                                    strokeWidth={2}
+                                    dot={{ r: 3 }}
+                                    activeDot={{ r: 5 }}
+                                />
+                            ))}
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    );
+}
