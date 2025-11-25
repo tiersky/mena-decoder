@@ -42,13 +42,15 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo/Header */}
           <div className="flex flex-col items-center mb-8">
-            <div className="bg-[#FF5900] p-4 rounded-2xl mb-4 flex items-center justify-center">
-              <img src="/talabat_icon_logo.png" alt="Talabat" className="w-12 h-12 object-contain" />
+            <div className="bg-[#FF5900] p-6 rounded-2xl mb-4 flex items-center justify-center">
+              <div className="bg-white p-3 rounded-xl">
+                <img src="/talabat_icon_logo.png" alt="Talabat" className="w-12 h-12 object-contain" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-[#431412] text-center">
+            <h1 className="text-3xl font-extrabold text-[#431412] text-center">
               MENA Decoder
             </h1>
-            <p className="text-[#431412]/70 text-center mt-2">
+            <p className="text-[#431412]/70 text-center mt-2 font-medium">
               Sign in to access the dashboard
             </p>
           </div>
@@ -64,7 +66,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-[#431412] mb-2"
+                className="block text-sm font-semibold text-[#431412] mb-2"
               >
                 Username
               </label>
@@ -83,7 +85,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-[#431412] mb-2"
+                className="block text-sm font-semibold text-[#431412] mb-2"
               >
                 Password
               </label>

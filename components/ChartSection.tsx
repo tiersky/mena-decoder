@@ -165,7 +165,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
         <div className="space-y-8">
             {/* Brand x Country Heatmap */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
-                <h2 className="text-lg font-semibold text-[#431412] mb-4">Brand Spend by Country (Heatmap)</h2>
+                <h2 className="text-lg font-bold text-[#431412] mb-4">Brand Spend by Country (Heatmap)</h2>
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={brandCountryHeatmap}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -205,7 +205,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
 
             {/* Top Brands by Budget */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
-                <h2 className="text-lg font-semibold text-[#431412] mb-4">Top 15 Brands by Budget</h2>
+                <h2 className="text-lg font-bold text-[#431412] mb-4">Top 15 Brands by Budget</h2>
                 <ResponsiveContainer width="100%" height={400}>
                     <BarChart data={topBrands} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -240,7 +240,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
             {/* Category Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
-                    <h2 className="text-lg font-semibold text-[#431412] mb-4">Budget by Category</h2>
+                    <h2 className="text-lg font-bold text-[#431412] mb-4">Budget by Category</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
@@ -308,7 +308,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
 
                 {/* Media Channel Scatter */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
-                    <h2 className="text-lg font-semibold text-[#431412] mb-4">Media/Channel: Campaigns vs Budget</h2>
+                    <h2 className="text-lg font-bold text-[#431412] mb-4">Media/Channel: Campaigns vs Budget</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <ScatterChart>
                             <CartesianGrid stroke="#e5e7eb" />
@@ -352,7 +352,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
 
             {/* Brand Budget Trends */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
-                <h2 className="text-lg font-semibold text-[#431412] mb-4">Brand Budget Trends Over Time</h2>
+                <h2 className="text-lg font-bold text-[#431412] mb-4">Brand Budget Trends Over Time</h2>
                 <ResponsiveContainer width="100%" height={400}>
                     <LineChart data={brandBudgetData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

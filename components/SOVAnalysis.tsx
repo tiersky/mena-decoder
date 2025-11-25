@@ -436,8 +436,8 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
                             <DollarSign className="w-5 h-5 text-[#FF5900]" />
                         </div>
                         <div>
-                            <p className="text-sm text-[#431412]/70 font-medium">Total Spend</p>
-                            <p className="text-xl font-bold text-[#431412]">{formatCurrency(stats.totalSpend)}</p>
+                            <p className="text-sm text-[#431412]/70 font-semibold">Total Spend</p>
+                            <p className="text-xl font-extrabold text-[#431412]">{formatCurrency(stats.totalSpend)}</p>
                         </div>
                     </div>
                 </div>
@@ -449,8 +449,8 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
                                 <BarChart2 className="w-5 h-5 text-[#431412]" />
                             </div>
                             <div>
-                                <p className="text-sm text-[#431412]/70 font-medium">Total Impressions (Volume)</p>
-                                <p className="text-xl font-bold text-[#431412]">{formatNumber(stats.totalVolume)}</p>
+                                <p className="text-sm text-[#431412]/70 font-semibold">Total Impressions (Volume)</p>
+                                <p className="text-xl font-extrabold text-[#431412]">{formatNumber(stats.totalVolume)}</p>
                             </div>
                         </div>
                     </div>

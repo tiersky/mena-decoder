@@ -233,7 +233,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <img src="/talabat_orange_LOGO.png" alt="Talabat Logo" className="h-8 object-contain" />
             <div className="h-8 w-px bg-[#431412]/20"></div>
-            <h1 className="text-xl font-bold tracking-tight text-[#431412]">MENA DECODER</h1>
+            <h1 className="text-xl font-extrabold tracking-tight text-[#431412]">MENA DECODER</h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-[#431412]/70">
             <Globe className="w-4 h-4" />
@@ -249,7 +249,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-[#FF5900]" />
-              <h2 className="text-lg font-semibold text-[#431412]">Filters</h2>
+              <h2 className="text-lg font-bold text-[#431412]">Filters</h2>
               {activeFiltersCount > 0 && (
                 <span className="px-2 py-1 bg-[#CFFF00] text-[#431412] text-xs font-medium rounded-full">
                   {activeFiltersCount}
@@ -353,27 +353,27 @@ export default function Dashboard() {
           {/* Map Section */}
           <div className="lg:w-1/2">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-[#431412]/10">
-              <h3 className="text-lg font-semibold text-[#431412] mb-4">Regional View</h3>
+              <h3 className="text-lg font-bold text-[#431412] mb-4">Regional View</h3>
               <MenaMap selectedCountry={selectedCountry} onSelectCountry={setSelectedCountry} />
             </div>
           </div>
 
           {/* KPI Cards */}
           <div className="lg:w-1/2 flex flex-col gap-4">
-            <h2 className="text-2xl font-bold text-[#431412]">Market Overview</h2>
+            <h2 className="text-2xl font-extrabold text-[#431412]">Market Overview</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
-                <p className="text-sm font-medium text-[#431412]/70">Campaigns</p>
-                <p className="text-3xl font-bold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-[#431412]/70">Campaigns</p>
+                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
               </div>
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
-                <p className="text-sm font-medium text-[#431412]/70">Total Budget Spend</p>
-                <p className="text-3xl font-bold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-[#431412]/70">Total Budget Spend</p>
+                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
               </div>
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
-                <p className="text-sm font-medium text-[#431412]/70">Active Brands</p>
-                <p className="text-3xl font-bold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
+                <p className="text-sm font-semibold text-[#431412]/70">Active Brands</p>
+                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
               </div>
             </div>
           </div>
