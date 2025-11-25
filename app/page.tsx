@@ -395,7 +395,9 @@ export default function Dashboard() {
         )}
 
         {/* SOV Analysis Section */}
-        <SOVAnalysis data={stats} />
+        <div className="mt-8">
+          <SOVAnalysis data={stats} />
+        </div>
 
         {/* AI Analyst Section */}
         <AIChatSection

@@ -5,38 +5,48 @@ import React from 'react';
 export default function BackgroundDecorations() {
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Wavy Orange Line - Diagonal from top-left to bottom-right */}
+            {/* Wavy Lines - Spread across different parts of the page */}
             <svg
                 className="absolute inset-0 w-full h-full"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 1440 900"
                 preserveAspectRatio="none"
             >
-                {/* Main wavy line */}
+                {/* Orange wavy line - Top area */}
                 <path
-                    d="M 0 80 Q 200 60, 400 100 T 800 180 Q 1000 220, 1200 280 T 1440 420"
+                    d="M 0 100 Q 180 85, 360 95 T 720 110 Q 900 105, 1080 100 T 1440 90"
                     stroke="#FF5900"
-                    strokeWidth="20"
+                    strokeWidth="8"
                     fill="none"
-                    opacity="0.15"
+                    opacity="0.35"
                     strokeLinecap="round"
                 />
 
-                {/* Dashed thinner version */}
+                {/* Green dashed wavy line - Middle area */}
                 <path
-                    d="M 0 120 Q 200 100, 400 140 T 800 220 Q 1000 260, 1200 320 T 1440 460"
-                    stroke="#FF5900"
-                    strokeWidth="4"
+                    d="M 0 450 Q 180 470, 360 460 T 720 480 Q 900 490, 1080 475 T 1440 465"
+                    stroke="#CFFF00"
+                    strokeWidth="6"
                     fill="none"
-                    opacity="0.25"
-                    strokeDasharray="20 15"
+                    opacity="0.4"
+                    strokeDasharray="15 10"
+                    strokeLinecap="round"
+                />
+
+                {/* Orange wavy line - Bottom area */}
+                <path
+                    d="M 0 750 Q 180 730, 360 745 T 720 760 Q 900 770, 1080 755 T 1440 740"
+                    stroke="#FF5900"
+                    strokeWidth="8"
+                    fill="none"
+                    opacity="0.3"
                     strokeLinecap="round"
                 />
             </svg>
 
-            {/* Scattered Icons */}
+            {/* Scattered Icons - Higher opacity, repositioned for better visibility */}
             {/* Mobile Icon - Top Left Area */}
-            <div className="absolute" style={{ top: '15%', left: '8%', width: '80px', height: '80px', opacity: 0.08 }}>
+            <div className="absolute" style={{ top: '15%', left: '10%', width: '70px', height: '70px', opacity: 0.18 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_mobile_bda7057b3d.svg"
                     alt=""
@@ -45,7 +55,7 @@ export default function BackgroundDecorations() {
             </div>
 
             {/* Scooter Icon - Top Right Area */}
-            <div className="absolute" style={{ top: '25%', right: '12%', width: '100px', height: '100px', opacity: 0.1 }}>
+            <div className="absolute" style={{ top: '20%', right: '15%', width: '85px', height: '85px', opacity: 0.2 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_scooter_4252e3ccf0.svg"
                     alt=""
@@ -54,7 +64,7 @@ export default function BackgroundDecorations() {
             </div>
 
             {/* Forward Icon - Middle Left */}
-            <div className="absolute" style={{ top: '50%', left: '5%', width: '70px', height: '70px', opacity: 0.07 }}>
+            <div className="absolute" style={{ top: '48%', left: '8%', width: '65px', height: '65px', opacity: 0.16 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_forward_2a84eca16e.svg"
                     alt=""
@@ -62,8 +72,8 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
-            {/* Favorites Icon - Bottom Right */}
-            <div className="absolute" style={{ bottom: '20%', right: '8%', width: '90px', height: '90px', opacity: 0.09 }}>
+            {/* Favorites Icon - Closer to center, visible on 1920x1080 */}
+            <div className="absolute" style={{ top: '35%', right: '22%', width: '75px', height: '75px', opacity: 0.19 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_favorites_31a3c72077.svg"
                     alt=""
@@ -72,8 +82,8 @@ export default function BackgroundDecorations() {
             </div>
 
             {/* Additional scattered instances for more coverage */}
-            {/* Mobile Icon - Bottom Left */}
-            <div className="absolute" style={{ bottom: '30%', left: '15%', width: '60px', height: '60px', opacity: 0.06 }}>
+            {/* Mobile Icon - Closer to center cards, visible on smaller screens */}
+            <div className="absolute" style={{ top: '25%', left: '35%', width: '60px', height: '60px', opacity: 0.17 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_mobile_bda7057b3d.svg"
                     alt=""
@@ -82,7 +92,7 @@ export default function BackgroundDecorations() {
             </div>
 
             {/* Scooter Icon - Middle Center */}
-            <div className="absolute" style={{ top: '45%', left: '50%', width: '85px', height: '85px', opacity: 0.08, transform: 'translateX(-50%)' }}>
+            <div className="absolute" style={{ top: '55%', left: '48%', width: '80px', height: '80px', opacity: 0.18 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_scooter_4252e3ccf0.svg"
                     alt=""
@@ -90,8 +100,8 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
-            {/* Forward Icon - Top Center */}
-            <div className="absolute" style={{ top: '10%', left: '60%', width: '75px', height: '75px', opacity: 0.07 }}>
+            {/* Forward Icon - Top Center-Right */}
+            <div className="absolute" style={{ top: '12%', left: '62%', width: '70px', height: '70px', opacity: 0.17 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_forward_2a84eca16e.svg"
                     alt=""
@@ -99,8 +109,8 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
-            {/* Favorites Icon - Middle Right */}
-            <div className="absolute" style={{ top: '60%', right: '20%', width: '70px', height: '70px', opacity: 0.08 }}>
+            {/* Favorites Icon - Bottom area, closer to center */}
+            <div className="absolute" style={{ bottom: '22%', left: '38%', width: '68px', height: '68px', opacity: 0.18 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_favorites_31a3c72077.svg"
                     alt=""
@@ -108,8 +118,8 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
-            {/* Mobile Icon - Bottom Center */}
-            <div className="absolute" style={{ bottom: '15%', left: '40%', width: '65px', height: '65px', opacity: 0.07 }}>
+            {/* Mobile Icon - Bottom Right, visible area */}
+            <div className="absolute" style={{ bottom: '18%', right: '18%', width: '65px', height: '65px', opacity: 0.16 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_mobile_bda7057b3d.svg"
                     alt=""
@@ -117,8 +127,8 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
-            {/* Forward Icon - Lower Right */}
-            <div className="absolute" style={{ bottom: '25%', right: '30%', width: '80px', height: '80px', opacity: 0.06 }}>
+            {/* Forward Icon - Lower area */}
+            <div className="absolute" style={{ bottom: '30%', left: '18%', width: '72px', height: '72px', opacity: 0.17 }}>
                 <img
                     src="https://corporate.talabat.com/uploads/ic_imperfect_forward_2a84eca16e.svg"
                     alt=""
