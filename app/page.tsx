@@ -368,12 +368,12 @@ export default function Dashboard() {
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
               </div>
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
-                <p className="text-sm font-semibold text-[#431412]/70">Total Budget Spend</p>
-                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
                 <p className="text-sm font-semibold text-[#431412]/70">Active Brands</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
+                <p className="text-sm font-semibold text-[#431412]/70">Total Budget Spend</p>
+                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
               </div>
             </div>
           </div>
