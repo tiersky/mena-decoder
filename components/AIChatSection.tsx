@@ -34,7 +34,7 @@ const AIChatSection = memo(function AIChatSection({
                         <div
                             className={`flex gap-2 max-w-[80%] ${m.role === 'user'
                                     ? 'bg-[#FF5900] text-white'
-                                    : 'bg-gray-100 text-[#431412]'
+                                    : 'bg-[#f4ede2] text-[#431412]'
                                 } rounded-lg p-3`}
                         >
                             {m.role === 'assistant' && <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />}
@@ -51,7 +51,7 @@ const AIChatSection = memo(function AIChatSection({
                 ))}
                 {isLoading && (
                     <div className="flex gap-3 justify-start">
-                        <div className="flex gap-2 bg-gray-100 text-[#431412] rounded-lg p-3">
+                        <div className="flex gap-2 bg-[#f4ede2] text-[#431412] rounded-lg p-3">
                             <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div className="animate-pulse">Analyzing...</div>
                         </div>

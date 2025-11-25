@@ -40,7 +40,7 @@ const MenaMap = ({ selectedCountry, onSelectCountry, data }: MenaMapProps) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     return (
-        <div ref={containerRef} className="w-full h-[400px] bg-gray-50 rounded-xl overflow-hidden border border-[#431412]/10 relative">
+        <div ref={containerRef} className="w-full h-[400px] bg-[#f4ede2]/30 rounded-xl overflow-hidden border border-[#431412]/10 relative">
             {tooltip && (
                 <div
                     className="absolute bg-[#431412] text-white px-3 py-1.5 rounded-md text-sm font-medium pointer-events-none z-50 shadow-lg whitespace-nowrap"
