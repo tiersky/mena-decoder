@@ -93,30 +93,29 @@ export default function ChartSection({ data }: ChartSectionProps) {
             .slice(0, 8);
     }, [data]);
 
-    // Media vs Channel Budget (Scatter)
-    const mediaChannelData = React.useMemo(() => {
-        const brandMediaTotals: Record<string, { campaigns: number; budget: number; brand: string }> = {};
+    // Brand aggregated data for scatter plot
+    const brandScatterData = React.useMemo(() => {
+        const brandTotals: Record<string, { campaigns: number; budget: number }> = {};
 
         data.forEach((item) => {
-            if (!item.brand || !item.media || !item.budget) return;
-            const key = `${item.brand} (${item.media}${item.channel ? ' - ' + item.channel : ''})`;
+            if (!item.brand || !item.budget) return;
+            const brand = item.brand;
             const budget = parseCurrency(item.budget);
 
-            if (!brandMediaTotals[key]) {
-                brandMediaTotals[key] = { campaigns: 0, budget: 0, brand: item.brand };
+            if (!brandTotals[brand]) {
+                brandTotals[brand] = { campaigns: 0, budget: 0 };
             }
-            brandMediaTotals[key].campaigns += 1;
-            brandMediaTotals[key].budget += budget;
+            brandTotals[brand].campaigns += 1;
+            brandTotals[brand].budget += budget;
         });
 
-        return Object.entries(brandMediaTotals)
-            .map(([name, data]) => ({
-                name,
-                brand: data.brand,
+        return Object.entries(brandTotals)
+            .map(([brand, data]) => ({
+                brand,
                 campaigns: data.campaigns,
                 budget: data.budget,
             }))
-            .slice(0, 50);
+            .sort((a, b) => a.campaigns - b.campaigns); // Sort by campaigns for ordered X-axis
     }, [data]);
 
     // Brand x Country Heatmap Data
@@ -259,9 +258,19 @@ export default function ChartSection({ data }: ChartSectionProps) {
                                     name,
                                 }: any) => {
                                     const RADIAN = Math.PI / 180;
-                                    const radius = outerRadius + 25;
+                                    const radius = outerRadius + 30;
                                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                     const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                                    // Truncate specific long names
+                                    let displayName = name;
+                                    if (name === 'TRADING COMPANIES') {
+                                        displayName = 'TRADING CO...';
+                                    } else if (name === 'ENTERTAINMENT & LEISURE') {
+                                        displayName = 'ENTERTAINME...';
+                                    } else if (name.length > 15) {
+                                        displayName = name.substring(0, 12) + '...';
+                                    }
 
                                     return (
                                         <text
@@ -273,7 +282,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                                             fontSize={11}
                                             fontWeight={500}
                                         >
-                                            {`${name.length > 15 ? name.substring(0, 15) + '...' : name}`}
+                                            {displayName}
                                         </text>
                                     );
                                 }}
@@ -322,7 +331,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                                         const data = payload[0].payload;
                                         return (
                                             <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                                <p className="font-semibold text-gray-900 mb-2">{data.name}</p>
+                                                <p className="font-semibold text-gray-900 mb-2">{data.brand}</p>
                                                 <p className="text-sm text-gray-600">
                                                     Budget: <span className="font-medium text-gray-900">{formatCurrency(data.budget)}</span>
                                                 </p>
@@ -335,7 +344,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                                     return null;
                                 }}
                             />
-                            <Scatter data={mediaChannelData} fill="#8B5CF6" />
+                            <Scatter data={brandScatterData} fill="#8B5CF6" />
                         </ScatterChart>
                     </ResponsiveContainer>
                 </div>
