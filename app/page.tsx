@@ -9,6 +9,7 @@ import HeyGenAvatar from '@/components/HeyGenAvatar';
 import { parseCurrency } from '@/utils/format';
 import MenaMap from '@/components/MenaMap';
 import { Send, Bot, User, BarChart3, Globe, Filter, X } from 'lucide-react';
+import BackgroundDecorations from '@/components/BackgroundDecorations';
 
 export default function Dashboard() {
   const supabase = createSupabaseClient();
@@ -226,7 +227,10 @@ export default function Dashboard() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-[#f4ede2] text-[#431412] font-sans">
+    <div className="min-h-screen bg-[#f4ede2] text-[#431412] font-sans relative">
+      {/* Background Decorations */}
+      <BackgroundDecorations />
+
       {/* Header */}
       <header className="bg-white border-b border-[#431412]/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -347,7 +351,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Map and KPIs */}
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           {/* Map Section */}
