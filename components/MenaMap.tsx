@@ -40,10 +40,10 @@ const MenaMap = ({ selectedCountry, onSelectCountry, data }: MenaMapProps) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     return (
-        <div ref={containerRef} className="w-full h-[400px] bg-blue-50/30 rounded-xl overflow-hidden border border-gray-100 relative">
+        <div ref={containerRef} className="w-full h-[400px] bg-[#F4EDE3] rounded-xl overflow-hidden border border-[#431412]/10 relative">
             {tooltip && (
                 <div
-                    className="absolute bg-gray-900 text-white px-3 py-1.5 rounded-md text-sm font-medium pointer-events-none z-50 shadow-lg whitespace-nowrap"
+                    className="absolute bg-[#431412] text-white px-3 py-1.5 rounded-md text-sm font-medium pointer-events-none z-50 shadow-lg whitespace-nowrap"
                     style={{
                         left: `${tooltip.x}px`,
                         top: `${tooltip.y - 40}px`,
@@ -69,15 +69,15 @@ const MenaMap = ({ selectedCountry, onSelectCountry, data }: MenaMapProps) => {
                                 const mappedName = COUNTRY_NAME_MAP[countryName];
                                 const isSelected = mappedName === selectedCountry;
 
-                                // Styling
+                                // Styling - Talabat colors
                                 let fill = "#EAEAEC"; // Default non-MENA
                                 let stroke = "#D6D6DA";
                                 let hoverFill = "#EAEAEC";
 
                                 if (isMena) {
-                                    fill = isSelected ? "#2563eb" : "#93c5fd"; // Blue for selected, Light Blue for MENA
+                                    fill = isSelected ? "#FF5900" : "#FFB380"; // Orange for selected, Light Orange for MENA
                                     stroke = "#FFFFFF";
-                                    hoverFill = "#1d4ed8"; // Darker blue on hover
+                                    hoverFill = "#E55000"; // Darker orange on hover
 
                                     if (!mappedName) {
                                         // MENA country but not in our dataset mapping (e.g. Yemen)
@@ -134,7 +134,7 @@ const MenaMap = ({ selectedCountry, onSelectCountry, data }: MenaMapProps) => {
                 </ZoomableGroup>
             </ComposableMap>
 
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-2 rounded-lg text-xs text-gray-500 shadow-sm">
+            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-2 rounded-lg text-xs text-[#431412]/70 shadow-sm">
                 Click to filter by country
             </div>
         </div>

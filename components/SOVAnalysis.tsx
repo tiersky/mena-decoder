@@ -19,18 +19,18 @@ const formatNumber = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value);
 };
 
-// Vibrant color palette for nodes
+// Vibrant color palette for nodes - Talabat colors
 const COLORS = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-    '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
-    '#06B6D4', '#F43F5E', '#8B5CF6', '#A855F7', '#D946EF'
+    '#FF5900', '#CFFF00', '#431412', '#F59E0B', '#10B981',
+    '#E55000', '#8B5CF6', '#14B8A6', '#6366F1', '#84CC16',
+    '#06B6D4', '#F43F5E', '#A855F7', '#D946EF', '#EC4899'
 ];
 
-// Link color palette (semi-transparent versions)
+// Link color palette (semi-transparent versions) - Talabat colors
 const LINK_COLORS = [
-    'rgba(59, 130, 246, 0.4)', 'rgba(16, 185, 129, 0.4)', 'rgba(245, 158, 11, 0.4)',
-    'rgba(239, 68, 68, 0.4)', 'rgba(139, 92, 246, 0.4)', 'rgba(236, 72, 153, 0.4)',
-    'rgba(20, 184, 166, 0.4)', 'rgba(249, 115, 22, 0.4)', 'rgba(99, 102, 241, 0.4)',
+    'rgba(255, 89, 0, 0.4)', 'rgba(207, 255, 0, 0.4)', 'rgba(67, 20, 18, 0.4)',
+    'rgba(245, 158, 11, 0.4)', 'rgba(16, 185, 129, 0.4)', 'rgba(229, 80, 0, 0.4)',
+    'rgba(139, 92, 246, 0.4)', 'rgba(20, 184, 166, 0.4)', 'rgba(99, 102, 241, 0.4)',
     'rgba(132, 204, 22, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgba(244, 63, 94, 0.4)'
 ];
 
@@ -293,23 +293,23 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 mb-8">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                    <BarChart2 className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-lg font-bold text-gray-800">SOV Analysis (Share of Voice)</h2>
+                    <BarChart2 className="w-5 h-5 text-[#FF5900]" />
+                    <h2 className="text-lg font-bold text-[#431412]">SOV Analysis (Share of Voice)</h2>
                 </div>
             </div>
 
             {/* Independent Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-[#F4EDE3] p-4 rounded-lg">
                 {/* Scope Filter */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Scope</label>
+                    <label className="block text-xs font-medium text-[#431412]/70 mb-1">Scope</label>
                     <select
                         value={scope}
                         onChange={(e) => setScope(e.target.value as any)}
-                        className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full text-sm border-[#431412]/20 rounded-md shadow-sm focus:ring-2 focus:ring-[#FF5900]"
                     >
                         <option value="Overall">Overall (Online & Offline)</option>
                         <option value="Online">Online Only</option>
@@ -319,11 +319,11 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
 
                 {/* Brand Filter */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Brand</label>
+                    <label className="block text-xs font-medium text-[#431412]/70 mb-1">Brand</label>
                     <select
                         value={selectedBrand}
                         onChange={(e) => setSelectedBrand(e.target.value)}
-                        className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full text-sm border-[#431412]/20 rounded-md shadow-sm focus:ring-2 focus:ring-[#FF5900]"
                     >
                         {brands.map(b => (
                             <option key={b} value={b}>{b}</option>
@@ -333,11 +333,11 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
 
                 {/* Country Filter */}
                 <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Country</label>
+                    <label className="block text-xs font-medium text-[#431412]/70 mb-1">Country</label>
                     <select
                         value={selectedCountry}
                         onChange={(e) => setSelectedCountry(e.target.value)}
-                        className="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="w-full text-sm border-[#431412]/20 rounded-md shadow-sm focus:ring-2 focus:ring-[#FF5900]"
                     >
                         {countries.map(c => (
                             <option key={c} value={c}>{c}</option>
@@ -348,10 +348,10 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
 
             {/* Level Labels */}
             <div className={`flex ${sankeyData.showChannels ? 'justify-between' : 'justify-around'} mb-2 px-8`}>
-                <div className="text-sm font-semibold text-gray-600 bg-blue-50 px-3 py-1 rounded">BRANDS</div>
-                <div className="text-sm font-semibold text-gray-600 bg-green-50 px-3 py-1 rounded">MEDIA</div>
+                <div className="text-sm font-semibold text-[#431412] bg-[#FF5900]/10 px-3 py-1 rounded">BRANDS</div>
+                <div className="text-sm font-semibold text-[#431412] bg-[#CFFF00]/30 px-3 py-1 rounded">MEDIA</div>
                 {sankeyData.showChannels && (
-                    <div className="text-sm font-semibold text-gray-600 bg-orange-50 px-3 py-1 rounded">CHANNELS</div>
+                    <div className="text-sm font-semibold text-[#431412] bg-[#431412]/10 px-3 py-1 rounded">CHANNELS</div>
                 )}
             </div>
 
@@ -429,28 +429,28 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
             </div>
 
             {/* Dynamic Stats Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100">
-                <div className="bg-blue-50 p-4 rounded-lg flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#431412]/10">
+                <div className="bg-[#FF5900]/10 p-4 rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                            <DollarSign className="w-5 h-5 text-blue-600" />
+                        <div className="p-2 bg-[#FF5900]/20 rounded-full">
+                            <DollarSign className="w-5 h-5 text-[#FF5900]" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Total Spend</p>
-                            <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.totalSpend)}</p>
+                            <p className="text-sm text-[#431412]/70 font-medium">Total Spend</p>
+                            <p className="text-xl font-bold text-[#431412]">{formatCurrency(stats.totalSpend)}</p>
                         </div>
                     </div>
                 </div>
 
                 {(scope === 'Online' || scope === 'Overall') && (
-                    <div className="bg-purple-50 p-4 rounded-lg flex items-center justify-between">
+                    <div className="bg-[#CFFF00]/20 p-4 rounded-lg flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 rounded-full">
-                                <BarChart2 className="w-5 h-5 text-purple-600" />
+                            <div className="p-2 bg-[#CFFF00]/40 rounded-full">
+                                <BarChart2 className="w-5 h-5 text-[#431412]" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 font-medium">Total Impressions (Volume)</p>
-                                <p className="text-xl font-bold text-gray-900">{formatNumber(stats.totalVolume)}</p>
+                                <p className="text-sm text-[#431412]/70 font-medium">Total Impressions (Volume)</p>
+                                <p className="text-xl font-bold text-[#431412]">{formatNumber(stats.totalVolume)}</p>
                             </div>
                         </div>
                     </div>

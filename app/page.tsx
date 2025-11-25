@@ -226,15 +226,16 @@ export default function Dashboard() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="min-h-screen bg-[#F4EDE3] text-[#431412] font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-[#431412]/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/talabat_icon_logo.png" alt="Talabat Logo" className="w-10 h-10 object-contain" />
-            <h1 className="text-xl font-bold tracking-tight text-gray-900">MENA DECODER</h1>
+            <img src="/talabat_orange_LOGO.png" alt="Talabat Logo" className="h-8 object-contain" />
+            <div className="h-8 w-px bg-[#431412]/20"></div>
+            <h1 className="text-xl font-bold tracking-tight text-[#431412]">MENA DECODER</h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-[#431412]/70">
             <Globe className="w-4 h-4" />
             <span>Region: MENA</span>
           </div>
@@ -242,15 +243,15 @@ export default function Dashboard() {
       </header>
 
       {/* Sticky Filters Section */}
-      <div className="sticky top-16 z-40 bg-gray-50 pt-4">
+      <div className="sticky top-16 z-40 bg-[#F4EDE3] pt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-[#431412]/10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
+              <Filter className="w-5 h-5 text-[#FF5900]" />
+              <h2 className="text-lg font-semibold text-[#431412]">Filters</h2>
               {activeFiltersCount > 0 && (
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                <span className="px-2 py-1 bg-[#CFFF00] text-[#431412] text-xs font-medium rounded-full">
                   {activeFiltersCount}
                 </span>
               )}
@@ -258,7 +259,7 @@ export default function Dashboard() {
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-[#431412]/70 hover:text-[#431412] hover:bg-[#F4EDE3] rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
                 Clear All
@@ -268,11 +269,11 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Country</label>
+              <label className="block text-xs font-medium text-[#431412]/70 mb-1">Country</label>
               <select
                 value={selectedCountry}
                 onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full rounded-md border-gray-300 text-sm p-2 border bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border-[#431412]/20 text-sm p-2 border bg-white text-[#431412] focus:ring-2 focus:ring-[#FF5900]"
               >
                 {countries.map((c) => (
                   <option key={c} value={c}>
@@ -283,11 +284,11 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Brand</label>
+              <label className="block text-xs font-medium text-[#431412]/70 mb-1">Brand</label>
               <select
                 value={selectedBrand}
                 onChange={(e) => setSelectedBrand(e.target.value)}
-                className="w-full rounded-md border-gray-300 text-sm p-2 border bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border-[#431412]/20 text-sm p-2 border bg-white text-[#431412] focus:ring-2 focus:ring-[#FF5900]"
               >
                 {brands.slice(0, 50).map((b) => (
                   <option key={b} value={b}>
@@ -298,11 +299,11 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+              <label className="block text-xs font-medium text-[#431412]/70 mb-1">Category</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full rounded-md border-gray-300 text-sm p-2 border bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border-[#431412]/20 text-sm p-2 border bg-white text-[#431412] focus:ring-2 focus:ring-[#FF5900]"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -313,11 +314,11 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Media</label>
+              <label className="block text-xs font-medium text-[#431412]/70 mb-1">Media</label>
               <select
                 value={selectedMedia}
                 onChange={(e) => setSelectedMedia(e.target.value)}
-                className="w-full rounded-md border-gray-300 text-sm p-2 border bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border-[#431412]/20 text-sm p-2 border bg-white text-[#431412] focus:ring-2 focus:ring-[#FF5900]"
               >
                 {medias.map((m) => (
                   <option key={m} value={m}>
@@ -328,11 +329,11 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Channel</label>
+              <label className="block text-xs font-medium text-[#431412]/70 mb-1">Channel</label>
               <select
                 value={selectedChannel}
                 onChange={(e) => setSelectedChannel(e.target.value)}
-                className="w-full rounded-md border-gray-300 text-sm p-2 border bg-white focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border-[#431412]/20 text-sm p-2 border bg-white text-[#431412] focus:ring-2 focus:ring-[#FF5900]"
               >
                 {channels.slice(0, 50).map((ch) => (
                   <option key={ch} value={ch}>
@@ -351,28 +352,28 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           {/* Map Section */}
           <div className="lg:w-1/2">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Regional View</h3>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#431412]/10">
+              <h3 className="text-lg font-semibold text-[#431412] mb-4">Regional View</h3>
               <MenaMap selectedCountry={selectedCountry} onSelectCountry={setSelectedCountry} />
             </div>
           </div>
 
           {/* KPI Cards */}
           <div className="lg:w-1/2 flex flex-col gap-4">
-            <h2 className="text-2xl font-bold text-gray-800">Market Overview</h2>
+            <h2 className="text-2xl font-bold text-[#431412]">Market Overview</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                <p className="text-sm font-medium text-gray-500">Campaigns</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{campaignCount.toLocaleString()}</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
+                <p className="text-sm font-medium text-[#431412]/70">Campaigns</p>
+                <p className="text-3xl font-bold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
-                <p className="text-sm font-medium text-gray-500">Total Budget Spend</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">${totalBudget.toLocaleString()}</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
+                <p className="text-sm font-medium text-[#431412]/70">Total Budget Spend</p>
+                <p className="text-3xl font-bold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center sm:col-span-2">
-                <p className="text-sm font-medium text-gray-500">Active Brands</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{uniqueBrandsCount}</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
+                <p className="text-sm font-medium text-[#431412]/70">Active Brands</p>
+                <p className="text-3xl font-bold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
               </div>
             </div>
           </div>
@@ -382,8 +383,8 @@ export default function Dashboard() {
         {/* Charts Section */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Loading data...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF5900]"></div>
+            <p className="mt-2 text-[#431412]/70">Loading data...</p>
           </div>
         ) : (
           <ChartSection data={filteredStats} />

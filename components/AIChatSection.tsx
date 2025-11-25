@@ -19,10 +19,10 @@ const AIChatSection = memo(function AIChatSection({
     onSubmit
 }: AIChatSectionProps) {
     return (
-        <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
             <div className="flex items-center gap-2 mb-4">
-                <Bot className="w-6 h-6 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-800">AI Strategic Analyst</h3>
+                <Bot className="w-6 h-6 text-[#FF5900]" />
+                <h3 className="text-lg font-semibold text-[#431412]">AI Strategic Analyst</h3>
             </div>
 
             <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
@@ -33,8 +33,8 @@ const AIChatSection = memo(function AIChatSection({
                     >
                         <div
                             className={`flex gap-2 max-w-[80%] ${m.role === 'user'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 text-gray-900'
+                                    ? 'bg-[#FF5900] text-white'
+                                    : 'bg-[#F4EDE3] text-[#431412]'
                                 } rounded-lg p-3`}
                         >
                             {m.role === 'assistant' && <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />}
@@ -51,7 +51,7 @@ const AIChatSection = memo(function AIChatSection({
                 ))}
                 {isLoading && (
                     <div className="flex gap-3 justify-start">
-                        <div className="flex gap-2 bg-gray-100 text-gray-900 rounded-lg p-3">
+                        <div className="flex gap-2 bg-[#F4EDE3] text-[#431412] rounded-lg p-3">
                             <Bot className="w-5 h-5 flex-shrink-0 mt-0.5" />
                             <div className="animate-pulse">Analyzing...</div>
                         </div>
@@ -65,13 +65,13 @@ const AIChatSection = memo(function AIChatSection({
                     value={input}
                     onChange={onInputChange}
                     placeholder="Ask a strategic question..."
-                    className="flex-1 rounded-md border-gray-300 text-sm p-3 border focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 rounded-md border-[#431412]/20 text-sm p-3 border focus:ring-2 focus:ring-[#FF5900]"
                     disabled={isLoading}
                 />
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-[#FF5900] text-white rounded-md hover:bg-[#E55000] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                     <Send className="w-4 h-4" />
                 </button>

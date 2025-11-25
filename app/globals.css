@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Talabat Brand Colors */
+  --talabat-orange: #FF5900;
+  --talabat-dark-brown: #431412;
+  --talabat-green: #CFFF00;
+  --talabat-cream: #F4EDE3;
+  --talabat-dark-orange: #E55000;
+  --talabat-light-orange: #FFB380;
+
+  /* Legacy variables mapped to Talabat colors */
+  --background: #F4EDE3;
+  --foreground: #431412;
 }
 
 @theme inline {
@@ -14,8 +23,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Keep light mode colors even in dark mode preference for Talabat branding */
+    --background: #F4EDE3;
+    --foreground: #431412;
   }
 }
 

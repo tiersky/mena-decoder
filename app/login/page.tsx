@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { BarChart3 } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -38,18 +37,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#F4EDE3] to-[#FFB380] flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo/Header */}
           <div className="flex flex-col items-center mb-8">
-            <div className="bg-blue-600 p-4 rounded-2xl mb-4">
-              <BarChart3 className="w-12 h-12 text-white" />
+            <div className="bg-[#FF5900] p-4 rounded-2xl mb-4 flex items-center justify-center">
+              <img src="/talabat_icon_logo.png" alt="Talabat" className="w-12 h-12 object-contain" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 text-center">
+            <h1 className="text-3xl font-bold text-[#431412] text-center">
               MENA Decoder
             </h1>
-            <p className="text-gray-500 text-center mt-2">
+            <p className="text-[#431412]/70 text-center mt-2">
               Sign in to access the dashboard
             </p>
           </div>
@@ -65,7 +64,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-[#431412] mb-2"
               >
                 Username
               </label>
@@ -74,7 +73,7 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
+                className="w-full px-4 py-3 border border-[#431412]/20 rounded-lg focus:ring-2 focus:ring-[#FF5900] focus:border-transparent transition-all text-[#431412]"
                 placeholder="Enter your username"
                 required
                 disabled={loading}
@@ -84,7 +83,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-[#431412] mb-2"
               >
                 Password
               </label>
@@ -93,7 +92,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
+                className="w-full px-4 py-3 border border-[#431412]/20 rounded-lg focus:ring-2 focus:ring-[#FF5900] focus:border-transparent transition-all text-[#431412]"
                 placeholder="Enter your password"
                 required
                 disabled={loading}
@@ -103,15 +102,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#FF5900] hover:bg-[#E55000] text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           {/* Info */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600 text-center">
+          <div className="mt-6 p-4 bg-[#CFFF00]/20 rounded-lg border border-[#431412]/10">
+            <p className="text-sm text-[#431412] text-center">
               <strong>Default credentials:</strong>
               <br />
               Username: admin
