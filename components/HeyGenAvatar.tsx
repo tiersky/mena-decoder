@@ -24,7 +24,7 @@ export default function HeyGenAvatar() {
       #heygen-streaming-embed {
         z-index: 9999;
         position: fixed;
-        right: 40px;
+        left: 40px;
         bottom: 40px;
         width: 200px;
         height: 200px;
@@ -33,6 +33,7 @@ export default function HeyGenAvatar() {
         box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.12);
         transition: all linear 0.1s;
         overflow: hidden;
+
         opacity: 0;
         visibility: hidden;
       }
@@ -42,8 +43,8 @@ export default function HeyGenAvatar() {
       }
       #heygen-streaming-embed.expand {
         ${clientWidth < 540
-          ? "height: 266px; width: 96%; left: 50%; right: auto; transform: translateX(-50%);"
-          : "height: 366px; width: calc(366px * 16 / 9); right: 40px; bottom: 40px;"
+          ? "height: 266px; width: 96%; left: 50%; transform: translateX(-50%);"
+          : "height: 366px; width: calc(366px * 16 / 9);"
         }
         border: 0;
         border-radius: 8px;
