@@ -228,13 +228,11 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900">MENA COUNTRY DECODER</h1>
+          <div className="flex items-center gap-3">
+            <img src="/talabat_icon_logo.png" alt="Talabat Logo" className="w-10 h-10 object-contain" />
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">MENA DECODER</h1>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Globe className="w-4 h-4" />
@@ -243,9 +241,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters Section */}
-        <div className="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      {/* Sticky Filters Section */}
+      <div className="sticky top-16 z-40 bg-gray-50 pt-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-gray-600" />
@@ -344,7 +343,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
 
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Map and KPIs */}
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           {/* Map Section */}
