@@ -16,17 +16,17 @@ const MENA_COUNTRIES = [
     "Egypt", "Iraq", "Jordan", "Lebanon", "Yemen", "Syria", "Iran", "Turkey", "Israel", "Palestine"
 ];
 
-// Mapping from GeoJSON name to our data name
+// Mapping from GeoJSON name to our data name (must match database exactly)
 const COUNTRY_NAME_MAP: Record<string, string> = {
     "United Arab Emirates": "UAE",
     "Saudi Arabia": "KSA",
-    "Kuwait": "Kuwait",
-    "Bahrain": "Bahrain",
-    "Oman": "Oman",
-    "Qatar": "Qatar",
-    "Egypt": "Egypt",
-    "Iraq": "Iraq",
-    "Jordan": "Jordan"
+    "Kuwait": "KUWAIT",
+    "Bahrain": "BAHRAIN",
+    "Oman": "OMAN",
+    "Qatar": "QATAR",
+    "Egypt": "EGYPT",
+    "Iraq": "IRAQ",
+    "Jordan": "JORDAN"
 };
 
 interface MenaMapProps {
