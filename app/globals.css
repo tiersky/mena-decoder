@@ -10,7 +10,7 @@
   --talabat-light-orange: #FFB380;
 
   /* Legacy variables mapped to Talabat colors */
-  --background: #F4EDE3;
+  --background: #2596be;
   --foreground: #431412;
 }
 
@@ -24,7 +24,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Keep light mode colors even in dark mode preference for Talabat branding */
-    --background: #F4EDE3;
+    --background: #2596be;
     --foreground: #431412;
   }
 }

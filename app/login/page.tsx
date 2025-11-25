@@ -37,15 +37,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F4EDE3] to-[#FFB380] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#2596be] to-[#1a7a9f] flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo/Header */}
           <div className="flex flex-col items-center mb-8">
-            <div className="bg-[#FF5900] p-6 rounded-2xl mb-4 flex items-center justify-center">
-              <div className="bg-white p-3 rounded-xl">
-                <img src="/talabat_icon_logo.png" alt="Talabat" className="w-12 h-12 object-contain" />
-              </div>
+            <div className="mb-6">
+              <img src="/talabat_orange_LOGO.png" alt="Talabat" className="h-12 object-contain" />
             </div>
             <h1 className="text-3xl font-extrabold text-[#431412] text-center">
               MENA Decoder

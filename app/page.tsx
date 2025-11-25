@@ -226,7 +226,7 @@ export default function Dashboard() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-[#F4EDE3] text-[#431412] font-sans">
+    <div className="min-h-screen bg-[#2596be] text-[#431412] font-sans">
       {/* Header */}
       <header className="bg-white border-b border-[#431412]/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function Dashboard() {
       </header>
 
       {/* Sticky Filters Section */}
-      <div className="sticky top-16 z-40 bg-[#F4EDE3] pt-4">
+      <div className="sticky top-16 z-40 bg-[#2596be] pt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white p-4 rounded-xl shadow-sm border border-[#431412]/10">
           <div className="flex items-center justify-between mb-4">

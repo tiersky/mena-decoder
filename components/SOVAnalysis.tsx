@@ -302,7 +302,7 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
             </div>
 
             {/* Independent Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-[#F4EDE3] p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
                 {/* Scope Filter */}
                 <div>
                     <label className="block text-xs font-medium text-[#431412]/70 mb-1">Scope</label>
