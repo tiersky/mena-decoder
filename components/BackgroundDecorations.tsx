@@ -72,6 +72,15 @@ export default function BackgroundDecorations() {
                 />
             </div>
 
+            {/* Favorites Icon - Between filters and Active Brands card */}
+            <div className="absolute" style={{ top: '22%', right: '28%', width: '70px', height: '70px', opacity: 0.19 }}>
+                <img
+                    src="https://corporate.talabat.com/uploads/ic_imperfect_favorites_31a3c72077.svg"
+                    alt=""
+                    className="w-full h-full object-contain"
+                />
+            </div>
+
             {/* Favorites Icon - Closer to center, visible on 1920x1080 */}
             <div className="absolute" style={{ top: '35%', right: '22%', width: '75px', height: '75px', opacity: 0.19 }}>
                 <img

@@ -297,7 +297,7 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                     <BarChart2 className="w-5 h-5 text-[#FF5900]" />
-                    <h2 className="text-lg font-bold text-[#431412]">SOV Analysis (Share of Voice)</h2>
+                    <h2 className="text-lg font-bold text-[#431412]">Channel Mix</h2>
                 </div>
             </div>
 
