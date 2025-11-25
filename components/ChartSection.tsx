@@ -95,23 +95,24 @@ export default function ChartSection({ data }: ChartSectionProps) {
 
     // Media vs Channel Budget (Scatter)
     const mediaChannelData = React.useMemo(() => {
-        const mediaChannelTotals: Record<string, { campaigns: number; budget: number }> = {};
+        const brandMediaTotals: Record<string, { campaigns: number; budget: number; brand: string }> = {};
 
         data.forEach((item) => {
-            if (!item.media || !item.budget) return;
-            const key = `${item.media} - ${item.channel || 'Unknown'}`;
+            if (!item.brand || !item.media || !item.budget) return;
+            const key = `${item.brand} (${item.media}${item.channel ? ' - ' + item.channel : ''})`;
             const budget = parseCurrency(item.budget);
 
-            if (!mediaChannelTotals[key]) {
-                mediaChannelTotals[key] = { campaigns: 0, budget: 0 };
+            if (!brandMediaTotals[key]) {
+                brandMediaTotals[key] = { campaigns: 0, budget: 0, brand: item.brand };
             }
-            mediaChannelTotals[key].campaigns += 1;
-            mediaChannelTotals[key].budget += budget;
+            brandMediaTotals[key].campaigns += 1;
+            brandMediaTotals[key].budget += budget;
         });
 
-        return Object.entries(mediaChannelTotals)
+        return Object.entries(brandMediaTotals)
             .map(([name, data]) => ({
                 name,
+                brand: data.brand,
                 campaigns: data.campaigns,
                 budget: data.budget,
             }))
@@ -247,9 +248,36 @@ export default function ChartSection({ data }: ChartSectionProps) {
                                 data={categoryData}
                                 cx="50%"
                                 cy="50%"
-                                labelLine={false}
-                                label={(entry: any) => entry.name}
-                                outerRadius={100}
+                                labelLine={true}
+                                label={({
+                                    cx,
+                                    cy,
+                                    midAngle,
+                                    innerRadius,
+                                    outerRadius,
+                                    percent,
+                                    name,
+                                }: any) => {
+                                    const RADIAN = Math.PI / 180;
+                                    const radius = outerRadius + 25;
+                                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                                    return (
+                                        <text
+                                            x={x}
+                                            y={y}
+                                            fill="#374151"
+                                            textAnchor={x > cx ? 'start' : 'end'}
+                                            dominantBaseline="central"
+                                            fontSize={11}
+                                            fontWeight={500}
+                                        >
+                                            {`${name.length > 15 ? name.substring(0, 15) + '...' : name}`}
+                                        </text>
+                                    );
+                                }}
+                                outerRadius={80}
                                 fill="#8884d8"
                                 dataKey="value"
                             >
@@ -289,14 +317,22 @@ export default function ChartSection({ data }: ChartSectionProps) {
                             />
                             <Tooltip
                                 cursor={{ strokeDasharray: '3 3' }}
-                                formatter={(value: any, name: any) => {
-                                    if (name === 'Budget') return formatCurrency(Number(value));
-                                    return value;
-                                }}
-                                contentStyle={{
-                                    backgroundColor: '#fff',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px'
+                                content={({ active, payload }: any) => {
+                                    if (active && payload && payload.length) {
+                                        const data = payload[0].payload;
+                                        return (
+                                            <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                                                <p className="font-semibold text-gray-900 mb-2">{data.name}</p>
+                                                <p className="text-sm text-gray-600">
+                                                    Budget: <span className="font-medium text-gray-900">{formatCurrency(data.budget)}</span>
+                                                </p>
+                                                <p className="text-sm text-gray-600">
+                                                    Campaigns: <span className="font-medium text-gray-900">{data.campaigns}</span>
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
                                 }}
                             />
                             <Scatter data={mediaChannelData} fill="#8B5CF6" />
