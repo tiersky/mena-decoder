@@ -55,6 +55,8 @@ export default function Dashboard() {
     setInput('');
     setIsAiLoading(true);
 
+    let hasContent = false;
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -82,24 +84,50 @@ export default function Dashboard() {
 
         let assistantContent = '';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          // Decode chunk as plain text
-          const chunk = decoder.decode(value, { stream: true });
-          assistantContent += chunk;
+            // Decode chunk as plain text
+            const chunk = decoder.decode(value, { stream: true });
+            assistantContent += chunk;
 
-          // Update message in real-time
-          setMessages(prev => {
-            const newMessages = [...prev];
-            newMessages[newMessages.length - 1] = {
-              ...newMessages[newMessages.length - 1],
-              content: assistantContent,
-            };
-            return newMessages;
-          });
+            // Update message in real-time
+            setMessages(prev => {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                ...newMessages[newMessages.length - 1],
+                content: assistantContent,
+              };
+              return newMessages;
+            });
+          }
+
+          // Mark that we have content
+          if (assistantContent.trim()) {
+            hasContent = true;
+          }
+        } catch (readError: any) {
+          // Stream read error - but we might have partial content
+          console.warn('Stream read error (possibly closed prematurely):', readError);
+          // Keep the content we have so far
+          if (assistantContent.trim()) {
+            hasContent = true;
+          }
+        } finally {
+          // Clean up reader
+          try {
+            reader.releaseLock();
+          } catch (e) {
+            // Ignore cleanup errors
+          }
         }
+      }
+
+      // If we successfully got content, don't throw error even if something failed later
+      if (hasContent) {
+        return; // Exit successfully
       }
     } catch (error: any) {
       console.error('Chat error:', error);
