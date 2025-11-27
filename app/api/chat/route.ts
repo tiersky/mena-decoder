@@ -179,8 +179,8 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
         }
     }
 
-    // Sort by budget descending and limit to 500 for fast response
-    query = query.order('budget', { ascending: false }).limit(500);
+    // Sort by budget descending and limit to 200 for very fast response
+    query = query.order('budget', { ascending: false }).limit(200);
 
     const { data, error, count } = await query;
 
@@ -230,8 +230,8 @@ function formatDatabaseResults(records: any[], totalCount: number): string {
         }
     });
 
-    // Take top 20 sample records for context
-    const sampleRecords = records.slice(0, 20).map(r => ({
+    // Take top 10 sample records for context
+    const sampleRecords = records.slice(0, 10).map(r => ({
         brand: r.brand,
         country: r.country,
         media: r.media,
@@ -270,10 +270,10 @@ ${Object.entries(monthlyActivity)
     .map(([month, count]) => `  - ${month}: ${count} campaigns`)
     .join('\n')}
 
-SAMPLE RECORDS (Top 20 by budget):
+SAMPLE RECORDS (Top 10 by budget):
 ${JSON.stringify(sampleRecords, null, 2)}
 
-Use the statistics above to provide SPECIFIC numbers in your answer. The sample records show actual campaign examples.
+Use the statistics above to provide SPECIFIC numbers in your answer.
 `;
 }
 
@@ -286,9 +286,9 @@ export async function POST(req: Request) {
         const userQuestion = lastMessage?.content || '';
         console.log('User question:', userQuestion);
 
-        // Load DOCX content (INCREASED from 15k to 50k characters)
+        // Load DOCX content (REDUCED to 20k for faster response)
         const docxContent = await getDocxContent();
-        const docxExcerpt = docxContent ? docxContent.substring(0, 50000) : 'Document not available';
+        const docxExcerpt = docxContent ? docxContent.substring(0, 20000) : 'Document not available';
         console.log('DOCX content length:', docxExcerpt.length);
 
         // Extract filters and query database
@@ -301,52 +301,24 @@ export async function POST(req: Request) {
         // Format raw data (NO SUMMARIZATION)
         const databaseContext = formatDatabaseResults(records, totalCount);
 
-        const systemPrompt = `
-You are an expert Strategic Analyst for the MENA Food Delivery and Quick Commerce Market.
+        const systemPrompt = `You are a Strategic Analyst for MENA Food Delivery Market.
 
-## IMPORTANT INSTRUCTIONS
+INSTRUCTIONS:
+- Answer with SPECIFIC NUMBERS from the database statistics below
+- Format: "$X across Y campaigns" with proper commas
+- If no data found, say so clearly
+- Keep answers concise and data-driven
 
-1. **Answer with SPECIFIC NUMBERS**: When the user asks about spending, campaigns, or activity, you MUST cite exact figures from the database records below.
-   - ✅ GOOD: "Talabat spent $2,450,000 across 45 campaigns in UAE during Q1 2024."
-   - ❌ BAD: "Talabat spent a significant amount in UAE."
-
-2. **Cite Actual Data**: You have access to the TOP 100 campaign records sorted by budget. Analyze these records to find:
-   - Total spending (sum of budget values)
-   - Number of campaigns
-   - Date ranges of activity
-   - Specific channels and media types used
-
-3. **Format Numbers Properly**:
-   - Use $ for currency
-   - Use commas for thousands (e.g., $1,234,567)
-   - Include time periods in your answers
-
-4. **When No Data Found**: If the database returns "No matching data", clearly state this and suggest alternative filters or check if the information might be in the market intelligence documents.
-
-5. **Combine Multiple Sources**:
-   - Database records = Current, specific campaign data
-   - Market intelligence = Strategic insights and context
-   - DOCX analysis = Detailed competitive analysis
-
-## KNOWLEDGE BASE
-
-### MENA Market Intelligence
+KNOWLEDGE BASE:
 ${MENA_KNOWLEDGE_BASE}
 
-### Detailed Market Analysis (50,000 char excerpt)
+MARKET ANALYSIS EXCERPT:
 ${docxExcerpt}
 
-### Current Database Query Results
+DATABASE RESULTS:
 ${databaseContext}
 
-## YOUR RESPONSE STRUCTURE
-
-1. Direct answer with specific numbers from database
-2. Supporting details (breakdown by channel, time period, etc.)
-3. Strategic context from market intelligence
-4. Additional insights or recommendations if relevant
-
-Today's date: ${new Date().toISOString().split('T')[0]}
+Today: ${new Date().toISOString().split('T')[0]}
 `;
 
         const validMessages = messages.filter((msg: any) => msg && msg.content && msg.role);
