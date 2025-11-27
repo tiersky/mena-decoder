@@ -27,66 +27,120 @@ const supabase = createClient(
 );
 
 /**
- * Extract relevant filter criteria from the user's question
+ * Extract relevant filter criteria from the user's question (IMPROVED VERSION)
  */
 function extractQueryFilters(question: string): {
     brands?: string[];
     countries?: string[];
+    media?: string[];
+    channels?: string[];
     categories?: string[];
     dateRange?: { start?: string; end?: string };
 } {
     const filters: any = {};
     const lowerQuestion = question.toLowerCase();
 
-    // Extract brands
-    const knownBrands = ['amazon', 'jahez', 'talabat', 'careem', 'deliveroo', 'noon', 'keeta', 'hunger station', 'instashop', 'kfc', 'pizza hut', 'mcdonald', 'localy'];
+    // Extract brands (expanded list)
+    const knownBrands = [
+        'amazon', 'talabat', 'careem', 'deliveroo', 'noon', 'keeta', 'instashop',
+        'hungerstation', 'hunger station', 'mrsool', 'marsool', 'jahez',
+        'kfc', 'mcdonalds', 'mcdonald', 'pizza hut', 'burger king', 'subway',
+        'localy', 'snoonu', 'chefz', 'kibsons', 'elgrocer'
+    ];
     const mentionedBrands = knownBrands.filter(brand => lowerQuestion.includes(brand.toLowerCase()));
     if (mentionedBrands.length > 0) {
         filters.brands = mentionedBrands;
     }
 
     // Extract countries
-    const knownCountries = ['ksa', 'saudi', 'uae', 'emirates', 'qatar', 'kuwait', 'bahrain', 'oman', 'egypt'];
     const countryMap: Record<string, string> = {
-        'ksa': 'KSA',
-        'saudi': 'KSA',
-        'uae': 'UAE',
-        'emirates': 'UAE',
-        'qatar': 'QATAR',
+        'ksa': 'KSA', 'saudi': 'KSA', 'saudi arabia': 'KSA',
+        'uae': 'UAE', 'emirates': 'UAE', 'dubai': 'UAE', 'abu dhabi': 'UAE',
+        'qatar': 'QATAR', 'doha': 'QATAR',
         'kuwait': 'KUWAIT',
         'bahrain': 'BAHRAIN',
-        'oman': 'OMAN',
-        'egypt': 'EGYPT'
+        'oman': 'OMAN', 'muscat': 'OMAN',
+        'egypt': 'EGYPT', 'cairo': 'EGYPT',
+        'jordan': 'JORDAN', 'amman': 'JORDAN',
+        'iraq': 'IRAQ', 'baghdad': 'IRAQ'
     };
-    const mentionedCountries = knownCountries.filter(c => lowerQuestion.includes(c));
+    const mentionedCountries: string[] = [];
+    for (const [keyword, country] of Object.entries(countryMap)) {
+        if (lowerQuestion.includes(keyword)) {
+            mentionedCountries.push(country);
+        }
+    }
     if (mentionedCountries.length > 0) {
-        filters.countries = [...new Set(mentionedCountries.map(c => countryMap[c]))];
+        filters.countries = [...new Set(mentionedCountries)];
     }
 
-    // Extract time periods
-    const currentYear = new Date().getFullYear();
-    const lastYearMatch = lowerQuestion.match(/last year|2024/);
-    const thisYearMatch = lowerQuestion.match(/this year|2025/);
-    const q1Match = lowerQuestion.match(/q1|first quarter/);
-    const q2Match = lowerQuestion.match(/q2|second quarter/);
-    const q3Match = lowerQuestion.match(/q3|third quarter/);
-    const q4Match = lowerQuestion.match(/q4|fourth quarter/);
+    // Extract media types
+    if (lowerQuestion.includes('online') || lowerQuestion.includes('digital') || lowerQuestion.includes('internet')) {
+        filters.media = ['ONLINE'];
+    }
+    if (lowerQuestion.includes('tv') || lowerQuestion.includes('television')) {
+        filters.media = filters.media || [];
+        filters.media.push('TV');
+    }
+    if (lowerQuestion.includes('radio')) {
+        filters.media = filters.media || [];
+        filters.media.push('RADIO');
+    }
 
-    if (lastYearMatch) {
+    // Extract channels
+    const channels = ['instagram', 'facebook', 'youtube', 'twitter', 'snapchat', 'tiktok', 'google'];
+    const mentionedChannels = channels.filter(ch => lowerQuestion.includes(ch));
+    if (mentionedChannels.length > 0) {
+        filters.channels = mentionedChannels;
+    }
+
+    // Extract time periods (IMPROVED)
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    // Year-based
+    const year2024Match = lowerQuestion.match(/2024|last year/);
+    const year2025Match = lowerQuestion.match(/2025|this year/);
+    const year2023Match = lowerQuestion.match(/2023/);
+
+    // Quarter-based
+    const q1Match = lowerQuestion.match(/q1|first quarter|quarter 1/);
+    const q2Match = lowerQuestion.match(/q2|second quarter|quarter 2/);
+    const q3Match = lowerQuestion.match(/q3|third quarter|quarter 3/);
+    const q4Match = lowerQuestion.match(/q4|fourth quarter|quarter 4/);
+
+    // Month-based
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthMatch = months.findIndex(m => lowerQuestion.includes(m));
+
+    if (year2024Match) {
         filters.dateRange = { start: '2024-01-01', end: '2024-12-31' };
-    } else if (thisYearMatch) {
+        if (q1Match) filters.dateRange = { start: '2024-01-01', end: '2024-03-31' };
+        if (q2Match) filters.dateRange = { start: '2024-04-01', end: '2024-06-30' };
+        if (q3Match) filters.dateRange = { start: '2024-07-01', end: '2024-09-30' };
+        if (q4Match) filters.dateRange = { start: '2024-10-01', end: '2024-12-31' };
+    } else if (year2025Match) {
         filters.dateRange = { start: '2025-01-01', end: '2025-12-31' };
-    } else if (q2Match && thisYearMatch) {
-        filters.dateRange = { start: '2025-04-01', end: '2025-06-30' };
+        if (q1Match) filters.dateRange = { start: '2025-01-01', end: '2025-03-31' };
+        if (q2Match) filters.dateRange = { start: '2025-04-01', end: '2025-06-30' };
+    } else if (year2023Match) {
+        filters.dateRange = { start: '2023-01-01', end: '2023-12-31' };
+    } else if (q1Match) {
+        filters.dateRange = { start: `${currentYear}-01-01`, end: `${currentYear}-03-31` };
     } else if (q2Match) {
         filters.dateRange = { start: `${currentYear}-04-01`, end: `${currentYear}-06-30` };
+    } else if (monthMatch >= 0) {
+        const monthNum = String(monthMatch + 1).padStart(2, '0');
+        const year = year2024Match ? 2024 : year2025Match ? 2025 : currentYear;
+        const lastDay = new Date(year, monthMatch + 1, 0).getDate();
+        filters.dateRange = { start: `${year}-${monthNum}-01`, end: `${year}-${monthNum}-${lastDay}` };
     }
 
     return filters;
 }
 
 /**
- * Query Supabase with filters extracted from the user question
+ * Query Supabase with filters (RETURNS RAW DATA, NO SUMMARIZATION)
  */
 async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
     let query = supabase
@@ -95,7 +149,6 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
 
     // Apply brand filter
     if (filters.brands && filters.brands.length > 0) {
-        // Use case-insensitive matching
         const brandConditions = filters.brands.map(b => `brand.ilike.%${b}%`).join(',');
         query = query.or(brandConditions);
     }
@@ -103,6 +156,17 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
     // Apply country filter
     if (filters.countries && filters.countries.length > 0) {
         query = query.in('country', filters.countries);
+    }
+
+    // Apply media filter
+    if (filters.media && filters.media.length > 0) {
+        query = query.in('media', filters.media);
+    }
+
+    // Apply channel filter
+    if (filters.channels && filters.channels.length > 0) {
+        const channelConditions = filters.channels.map(c => `channel.ilike.%${c}%`).join(',');
+        query = query.or(channelConditions);
     }
 
     // Apply date range filter
@@ -115,155 +179,123 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
         }
     }
 
-    const { data, error } = await query.limit(1000);
+    // Sort by budget descending and INCREASE LIMIT to 2000
+    query = query.order('budget', { ascending: false }).limit(2000);
+
+    const { data, error, count } = await query;
 
     if (error) {
         console.error('Supabase query error:', error);
-        return [];
+        return { records: [], totalCount: 0 };
     }
 
-    return data || [];
+    return { records: data || [], totalCount: count || data?.length || 0 };
 }
 
 /**
- * Analyze and summarize queried data
+ * Format raw data for GPT (TOP 100 RECORDS AS JSON)
  */
-function summarizeQueryResults(data: any[]): string {
-    if (!data || data.length === 0) {
-        return 'No matching data found in the database.';
+function formatDatabaseResults(records: any[], totalCount: number): string {
+    if (!records || records.length === 0) {
+        return 'No matching data found in the database for the specified filters.';
     }
 
-    // Calculate aggregates
-    const totalBudget = data.reduce((acc, item) => acc + parseCurrency(item.budget), 0);
-    const totalVolume = data.reduce((acc, item) => acc + parseCurrency(item.volume), 0);
-
-    // Group by brand
-    const brandStats: Record<string, { budget: number; campaigns: number; volume: number }> = {};
-    data.forEach((item) => {
-        const brand = item.brand || 'Unknown';
-        if (!brandStats[brand]) {
-            brandStats[brand] = { budget: 0, campaigns: 0, volume: 0 };
-        }
-        brandStats[brand].budget += parseCurrency(item.budget);
-        brandStats[brand].campaigns += 1;
-        brandStats[brand].volume += parseCurrency(item.volume);
-    });
-
-    // Group by country
-    const countryStats: Record<string, { budget: number; campaigns: number }> = {};
-    data.forEach((item) => {
-        const country = item.country || 'Unknown';
-        if (!countryStats[country]) {
-            countryStats[country] = { budget: 0, campaigns: 0 };
-        }
-        countryStats[country].budget += parseCurrency(item.budget);
-        countryStats[country].campaigns += 1;
-    });
-
-    // Group by category
-    const categoryStats: Record<string, number> = {};
-    data.forEach((item) => {
-        const category = item.category || 'Unknown';
-        categoryStats[category] = (categoryStats[category] || 0) + parseCurrency(item.budget);
-    });
-
-    // Format the summary
-    const brandSummary = Object.entries(brandStats)
-        .sort((a, b) => b[1].budget - a[1].budget)
-        .slice(0, 10)
-        .map(([brand, stats]) =>
-            `  - ${brand}: ${formatCurrency(stats.budget)} budget, ${stats.campaigns} campaigns, ${stats.volume.toLocaleString()} volume`
-        )
-        .join('\n');
-
-    const countrySummary = Object.entries(countryStats)
-        .sort((a, b) => b[1].budget - a[1].budget)
-        .map(([country, stats]) =>
-            `  - ${country}: ${formatCurrency(stats.budget)} budget, ${stats.campaigns} campaigns`
-        )
-        .join('\n');
-
-    const categorySummary = Object.entries(categoryStats)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([category, budget]) =>
-            `  - ${category}: ${formatCurrency(budget)}`
-        )
-        .join('\n');
+    // Take top 100 most relevant records
+    const topRecords = records.slice(0, 100).map(r => ({
+        brand: r.brand,
+        country: r.country,
+        category: r.category,
+        media: r.media,
+        channel: r.channel,
+        budget: r.budget,
+        volume: r.volume,
+        date: r.date,
+    }));
 
     return `
-Database Query Results (${data.length} records found):
-- Total Budget: ${formatCurrency(totalBudget)}
-- Total Volume: ${totalVolume.toLocaleString()}
+Found ${records.length} matching campaigns${totalCount > records.length ? ` (total: ${totalCount}, showing top ${records.length})` : ''}.
 
-Top Brands:
-${brandSummary}
+TOP 100 CAMPAIGN RECORDS (sorted by budget):
+${JSON.stringify(topRecords, null, 2)}
 
-Countries:
-${countrySummary}
-
-Top Categories:
-${categorySummary}
+You can analyze these records to answer the user's question with SPECIFIC numbers, dates, and details.
 `;
 }
 
 export async function POST(req: Request) {
     try {
-        console.log('=== AI Chat API Request Started ===');
+        console.log('=== AI Chat API Request Started (Improved Version) ===');
 
-        // Parse request body
         const { messages } = await req.json();
-        console.log('Received messages:', JSON.stringify(messages, null, 2));
-
-        // Get the last user message
         const lastMessage = messages[messages.length - 1];
         const userQuestion = lastMessage?.content || '';
         console.log('User question:', userQuestion);
 
-        // Load docx content
-        console.log('Loading DOCX content...');
+        // Load DOCX content (INCREASED from 15k to 50k characters)
         const docxContent = await getDocxContent();
-        console.log('DOCX content length:', docxContent?.length || 0);
+        const docxExcerpt = docxContent ? docxContent.substring(0, 50000) : 'Document not available';
+        console.log('DOCX content length:', docxExcerpt.length);
 
         // Extract filters and query database
-        console.log('Extracting query filters...');
         const filters = extractQueryFilters(userQuestion);
-        console.log('Filters:', filters);
+        console.log('Extracted filters:', JSON.stringify(filters, null, 2));
 
-        console.log('Querying database...');
-        const queryResults = await queryDatabase(filters);
-        console.log('Query results count:', queryResults?.length || 0);
+        const { records, totalCount } = await queryDatabase(filters);
+        console.log(`Query returned ${records.length} records`);
 
-        const dataSummary = summarizeQueryResults(queryResults);
+        // Format raw data (NO SUMMARIZATION)
+        const databaseContext = formatDatabaseResults(records, totalCount);
 
         const systemPrompt = `
-You are an expert Strategic Analyst for the MENA Food Delivery Market.
+You are an expert Strategic Analyst for the MENA Food Delivery and Quick Commerce Market.
 
-**MENA Market Intelligence (from internal research document):**
+## IMPORTANT INSTRUCTIONS
+
+1. **Answer with SPECIFIC NUMBERS**: When the user asks about spending, campaigns, or activity, you MUST cite exact figures from the database records below.
+   - ✅ GOOD: "Talabat spent $2,450,000 across 45 campaigns in UAE during Q1 2024."
+   - ❌ BAD: "Talabat spent a significant amount in UAE."
+
+2. **Cite Actual Data**: You have access to the TOP 100 campaign records sorted by budget. Analyze these records to find:
+   - Total spending (sum of budget values)
+   - Number of campaigns
+   - Date ranges of activity
+   - Specific channels and media types used
+
+3. **Format Numbers Properly**:
+   - Use $ for currency
+   - Use commas for thousands (e.g., $1,234,567)
+   - Include time periods in your answers
+
+4. **When No Data Found**: If the database returns "No matching data", clearly state this and suggest alternative filters or check if the information might be in the market intelligence documents.
+
+5. **Combine Multiple Sources**:
+   - Database records = Current, specific campaign data
+   - Market intelligence = Strategic insights and context
+   - DOCX analysis = Detailed competitive analysis
+
+## KNOWLEDGE BASE
+
+### MENA Market Intelligence
 ${MENA_KNOWLEDGE_BASE}
 
-**Additional Market Analysis (from MENA Delivery Market Competitive Analysis document):**
-${docxContent ? docxContent.substring(0, 15000) : 'Document not available'}
+### Detailed Market Analysis (50,000 char excerpt)
+${docxExcerpt}
 
-**Current Database Query Results:**
-${dataSummary}
+### Current Database Query Results
+${databaseContext}
 
-**Instructions:**
-- Answer the user's question using BOTH the database query results AND the market intelligence documents above.
-- ALWAYS cite specific numbers from the database when available (e.g., "According to our data, Amazon spent $X in KSA last year...").
-- Reference strategic insights from the market analysis document when relevant.
-- If the database query results show "No matching data found", check if the market intelligence documents contain relevant information.
-- Do not hallucinate numbers. If specific data is missing, say so and provide context from what is available.
-- Keep answers concise, strategic, and executive-level.
-- When referencing data, be clear about the source (database vs. market analysis document).
+## YOUR RESPONSE STRUCTURE
+
+1. Direct answer with specific numbers from database
+2. Supporting details (breakdown by channel, time period, etc.)
+3. Strategic context from market intelligence
+4. Additional insights or recommendations if relevant
+
+Today's date: ${new Date().toISOString().split('T')[0]}
 `;
 
-        // Filter and validate messages before converting
-        const validMessages = messages.filter((msg: any) =>
-            msg && msg.content && msg.role
-        );
+        const validMessages = messages.filter((msg: any) => msg && msg.content && msg.role);
         console.log('Valid messages count:', validMessages.length);
-        console.log('Calling OpenAI API...');
 
         const result = streamText({
             model: openai('gpt-4o'),
@@ -277,7 +309,6 @@ ${dataSummary}
         console.error('=== AI Chat API Error ===');
         console.error('Error message:', error?.message);
         console.error('Error stack:', error?.stack);
-        console.error('Error details:', JSON.stringify(error, null, 2));
 
         return new Response(
             JSON.stringify({

@@ -1,0 +1,399 @@
+/**
+ * Chat Tools for OpenAI Function Calling
+ * Defines tools that GPT-4o can use to query database and provide accurate answers
+ */
+
+import { z } from 'zod';
+import { tool } from 'ai';
+import { createSupabaseClient } from '@/utils/supabase/client';
+import { hybridSearch } from '@/utils/embeddings';
+
+/**
+ * Tool: Query Database
+ * Allows GPT to query the competitive stats database with filters
+ */
+export const queryDatabaseTool = tool({
+  description: `Query the competitive marketing database to get campaign data.
+  Use this to answer questions about brand spending, campaigns, media channels, and market activity.
+  Returns up to 200 actual campaign records with details like budget, volume, dates, and channels.
+
+  Examples of when to use this:
+  - "What was Talabat's spend in UAE last year?"
+  - "How many campaigns did Careem run on Instagram?"
+  - "Show me all food delivery brands in KSA"
+  - "Which brands spent the most on TV in Q1 2024?"`,
+
+  parameters: z.object({
+    brands: z.array(z.string()).optional()
+      .describe('Filter by brand names (e.g., ["TALABAT", "CAREEM", "DELIVEROO"]). Case-insensitive partial matching.'),
+
+    countries: z.array(z.enum(['UAE', 'KSA', 'KUWAIT', 'QATAR', 'BAHRAIN', 'OMAN', 'EGYPT', 'JORDAN', 'IRAQ'])).optional()
+      .describe('Filter by countries. Must be exact matches in uppercase.'),
+
+    media: z.array(z.enum(['ONLINE', 'TV', 'RADIO', 'PRINT', 'OUTDOOR', 'CINEMA'])).optional()
+      .describe('Filter by media type'),
+
+    channels: z.array(z.string()).optional()
+      .describe('Filter by specific channels (e.g., ["INSTAGRAM", "FACEBOOK", "MBC", "YOUTUBE"])'),
+
+    dateFrom: z.string().optional()
+      .describe('Start date for filtering (ISO format: YYYY-MM-DD)'),
+
+    dateTo: z.string().optional()
+      .describe('End date for filtering (ISO format: YYYY-MM-DD)'),
+
+    limit: z.number().default(200)
+      .describe('Maximum number of records to return (default: 200, max: 500)'),
+
+    sortBy: z.enum(['budget', 'volume', 'date']).default('budget')
+      .describe('Sort results by budget, volume, or date (default: budget descending)'),
+  }),
+
+  execute: async ({ brands, countries, media, channels, dateFrom, dateTo, limit, sortBy }): Promise<any> => {
+    const supabase = createSupabaseClient();
+
+    // Build query
+    let query = supabase
+      .from('unified_competitive_stats')
+      .select('id, category, brand, country, media, channel, budget_numeric, volume_numeric, date, source');
+
+    // Apply filters
+    if (brands && brands.length > 0) {
+      // Case-insensitive partial matching for brands
+      const brandConditions = brands.map(b => `brand.ilike.%${b}%`).join(',');
+      query = query.or(brandConditions);
+    }
+
+    if (countries && countries.length > 0) {
+      query = query.in('country', countries);
+    }
+
+    if (media && media.length > 0) {
+      query = query.in('media', media);
+    }
+
+    if (channels && channels.length > 0) {
+      const channelConditions = channels.map(c => `channel.ilike.%${c}%`).join(',');
+      query = query.or(channelConditions);
+    }
+
+    if (dateFrom) {
+      query = query.gte('date', dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte('date', dateTo);
+    }
+
+    // Apply sorting
+    if (sortBy === 'budget') {
+      query = query.order('budget_numeric', { ascending: false, nullsFirst: false });
+    } else if (sortBy === 'volume') {
+      query = query.order('volume_numeric', { ascending: false, nullsFirst: false });
+    } else {
+      query = query.order('date', { ascending: false });
+    }
+
+    // Apply limit (cap at 500 for safety)
+    const safeLimit = Math.min(limit, 500);
+    query = query.limit(safeLimit);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+        records: [],
+      };
+    }
+
+    return {
+      success: true,
+      records: data || [],
+      count: data?.length || 0,
+      totalMatching: count,
+      message: count && count > safeLimit
+        ? `Showing top ${safeLimit} of ${count} matching records. Results are sorted by ${sortBy}.`
+        : `Found ${data?.length || 0} matching records.`
+    };
+  },
+});
+
+/**
+ * Tool: Semantic Search
+ * Allows GPT to search for campaigns using natural language
+ */
+export const semanticSearchTool = tool({
+  description: `Search campaigns using natural language understanding.
+  Use this for complex or fuzzy queries where exact filters won't work.
+
+  Examples of when to use this:
+  - "Find campaigns about fast food delivery"
+  - "Show me brands focusing on mobile apps"
+  - "Which companies promoted sustainability?"
+  - "Campaigns related to ramadan"`,
+
+  parameters: z.object({
+    query: z.string()
+      .describe('Natural language search query'),
+
+    limit: z.number().default(100)
+      .describe('Maximum number of results (default: 100)'),
+
+    filters: z.object({
+      brands: z.array(z.string()).optional(),
+      countries: z.array(z.string()).optional(),
+      media: z.array(z.string()).optional(),
+      channels: z.array(z.string()).optional(),
+      dateFrom: z.string().optional(),
+      dateTo: z.string().optional(),
+    }).optional()
+      .describe('Optional additional filters to combine with semantic search'),
+  }),
+
+  execute: async ({ query, limit, filters }): Promise<any> => {
+    const supabase = createSupabaseClient();
+
+    try {
+      const results = await hybridSearch(supabase, query, filters || {}, limit);
+
+      return {
+        success: true,
+        records: results,
+        count: results.length,
+        message: `Found ${results.length} semantically relevant campaigns for: "${query}"`,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+        records: [],
+      };
+    }
+  },
+});
+
+/**
+ * Tool: Get Market Statistics
+ * Calculates aggregate statistics for specific filters
+ */
+export const getMarketStatsTool = tool({
+  description: `Calculate aggregate market statistics (total spend, campaign count, brand count, etc.).
+  Use this for summary questions about market size, spending totals, or comparative metrics.
+
+  Examples of when to use this:
+  - "What's the total market spend in UAE?"
+  - "How many brands are active in food delivery?"
+  - "Compare TV vs Online spending across MENA"`,
+
+  parameters: z.object({
+    brands: z.array(z.string()).optional(),
+    countries: z.array(z.string()).optional(),
+    media: z.array(z.string()).optional(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+    groupBy: z.array(z.enum(['brand', 'country', 'media', 'channel', 'category'])).optional()
+      .describe('Group results by these dimensions'),
+  }),
+
+  execute: async ({ brands, countries, media, dateFrom, dateTo, groupBy }): Promise<any> => {
+    const supabase = createSupabaseClient();
+
+    // Build base query
+    let query = supabase
+      .from('unified_competitive_stats')
+      .select('brand, country, media, channel, category, budget_numeric, volume_numeric');
+
+    // Apply filters
+    if (brands && brands.length > 0) {
+      const brandConditions = brands.map(b => `brand.ilike.%${b}%`).join(',');
+      query = query.or(brandConditions);
+    }
+
+    if (countries && countries.length > 0) {
+      query = query.in('country', countries);
+    }
+
+    if (media && media.length > 0) {
+      query = query.in('media', media);
+    }
+
+    if (dateFrom) {
+      query = query.gte('date', dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte('date', dateTo);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data) {
+      return {
+        success: false,
+        error: error?.message || 'No data found',
+      };
+    }
+
+    // Calculate overall statistics
+    const totalBudget = data.reduce((sum, r) => sum + (r.budget_numeric || 0), 0);
+    const totalVolume = data.reduce((sum, r) => sum + (r.volume_numeric || 0), 0);
+    const uniqueBrands = new Set(data.map(r => r.brand)).size;
+    const campaignCount = data.length;
+
+    const stats: any = {
+      totalBudget,
+      totalVolume,
+      uniqueBrands,
+      campaignCount,
+      avgBudgetPerCampaign: campaignCount > 0 ? totalBudget / campaignCount : 0,
+    };
+
+    // Group by dimensions if requested
+    if (groupBy && groupBy.length > 0) {
+      stats.groupedData = {};
+
+      groupBy.forEach(dimension => {
+        const grouped = data.reduce((acc: any, record: any) => {
+          const key = record[dimension] || 'Unknown';
+          if (!acc[key]) {
+            acc[key] = {
+              budget: 0,
+              volume: 0,
+              campaigns: 0,
+            };
+          }
+          acc[key].budget += record.budget_numeric || 0;
+          acc[key].volume += record.volume_numeric || 0;
+          acc[key].campaigns += 1;
+          return acc;
+        }, {});
+
+        stats.groupedData[dimension] = grouped;
+      });
+    }
+
+    return {
+      success: true,
+      statistics: stats,
+      message: `Analyzed ${campaignCount} campaigns with total spend of $${totalBudget.toLocaleString()}`,
+    };
+  },
+});
+
+/**
+ * Tool: Get Time Series Data
+ * Analyzes trends over time for specific metrics
+ */
+export const getTimeSeriesTool = tool({
+  description: `Analyze trends over time (monthly, quarterly, yearly).
+  Use this for time-based questions about growth, trends, or seasonal patterns.
+
+  Examples of when to use this:
+  - "Show Talabat's spending trend over the last year"
+  - "Which quarter had the most activity?"
+  - "Compare monthly growth for Careem vs Deliveroo"`,
+
+  parameters: z.object({
+    metric: z.enum(['budget', 'volume', 'campaigns'])
+      .describe('Which metric to track over time'),
+
+    interval: z.enum(['month', 'quarter', 'year']).default('month')
+      .describe('Time interval for grouping'),
+
+    brands: z.array(z.string()).optional(),
+    countries: z.array(z.string()).optional(),
+    dateFrom: z.string().optional(),
+    dateTo: z.string().optional(),
+  }),
+
+  execute: async ({ metric, interval, brands, countries, dateFrom, dateTo }): Promise<any> => {
+    const supabase = createSupabaseClient();
+
+    // Build query
+    let query = supabase
+      .from('unified_competitive_stats')
+      .select('brand, country, budget_numeric, volume_numeric, date')
+      .order('date', { ascending: true });
+
+    // Apply filters
+    if (brands && brands.length > 0) {
+      const brandConditions = brands.map(b => `brand.ilike.%${b}%`).join(',');
+      query = query.or(brandConditions);
+    }
+
+    if (countries && countries.length > 0) {
+      query = query.in('country', countries);
+    }
+
+    if (dateFrom) {
+      query = query.gte('date', dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte('date', dateTo);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data) {
+      return {
+        success: false,
+        error: error?.message || 'No data found',
+      };
+    }
+
+    // Group by time period
+    const timeSeries = data.reduce((acc: any, record: any) => {
+      if (!record.date) return acc;
+
+      const date = new Date(record.date);
+      let key: string;
+
+      if (interval === 'month') {
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      } else if (interval === 'quarter') {
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        key = `${date.getFullYear()}-Q${quarter}`;
+      } else {
+        key = `${date.getFullYear()}`;
+      }
+
+      if (!acc[key]) {
+        acc[key] = {
+          period: key,
+          budget: 0,
+          volume: 0,
+          campaigns: 0,
+        };
+      }
+
+      acc[key].budget += record.budget_numeric || 0;
+      acc[key].volume += record.volume_numeric || 0;
+      acc[key].campaigns += 1;
+
+      return acc;
+    }, {});
+
+    const sortedTimeSeries = Object.values(timeSeries).sort((a: any, b: any) =>
+      a.period.localeCompare(b.period)
+    );
+
+    return {
+      success: true,
+      timeSeries: sortedTimeSeries,
+      metric,
+      interval,
+      message: `Time series data for ${metric} by ${interval}`,
+    };
+  },
+});
+
+// Export all tools as an object for the chat API
+export const chatTools = {
+  queryDatabase: queryDatabaseTool,
+  semanticSearch: semanticSearchTool,
+  getMarketStats: getMarketStatsTool,
+  getTimeSeries: getTimeSeriesTool,
+};
