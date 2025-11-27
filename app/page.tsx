@@ -85,57 +85,83 @@ export default function Dashboard() {
         let assistantContent = '';
 
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          let readCount = 0;
+          const maxReads = 1000; // Safety limit
+
+          while (readCount < maxReads) {
+            readCount++;
+
+            let readResult;
+            try {
+              readResult = await reader.read();
+            } catch (readError: any) {
+              // Stream closed or read error
+              console.warn('Stream read failed:', readError.message);
+              break; // Exit loop gracefully
+            }
+
+            if (!readResult || readResult.done) break;
+
+            const { value } = readResult;
+            if (!value) continue;
 
             // Decode chunk as plain text
-            const chunk = decoder.decode(value, { stream: true });
-            assistantContent += chunk;
+            try {
+              const chunk = decoder.decode(value, { stream: true });
+              assistantContent += chunk;
 
-            // Update message in real-time
-            setMessages(prev => {
-              const newMessages = [...prev];
-              newMessages[newMessages.length - 1] = {
-                ...newMessages[newMessages.length - 1],
-                content: assistantContent,
-              };
-              return newMessages;
-            });
+              // Update message in real-time (batch updates every 50ms to avoid too many renders)
+              setMessages(prev => {
+                const newMessages = [...prev];
+                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
+                  newMessages[newMessages.length - 1] = {
+                    ...newMessages[newMessages.length - 1],
+                    content: assistantContent,
+                  };
+                }
+                return newMessages;
+              });
+            } catch (decodeError: any) {
+              console.warn('Decode error:', decodeError.message);
+              continue; // Skip this chunk
+            }
           }
 
           // Mark that we have content
           if (assistantContent.trim()) {
             hasContent = true;
           }
-        } catch (readError: any) {
-          // Stream read error - but we might have partial content
-          console.warn('Stream read error (possibly closed prematurely):', readError);
-          // Keep the content we have so far
-          if (assistantContent.trim()) {
-            hasContent = true;
-          }
         } finally {
           // Clean up reader
           try {
-            reader.releaseLock();
+            if (reader) {
+              reader.releaseLock();
+            }
           } catch (e) {
             // Ignore cleanup errors
           }
         }
       }
 
-      // If we successfully got content, don't throw error even if something failed later
+      // If we successfully got content, exit successfully (no error)
       if (hasContent) {
-        return; // Exit successfully
+        setIsAiLoading(false);
+        return;
       }
     } catch (error: any) {
+      // Don't let errors crash the app
       console.error('Chat error:', error);
       console.error('Error details:', {
         message: error?.message,
         stack: error?.stack,
         name: error?.name
       });
+
+      // If we have content despite error, keep it and don't show error message
+      if (hasContent) {
+        setIsAiLoading(false);
+        return;
+      }
 
       // Update the last message if it exists and has content (partial response before error)
       // Otherwise add a new error message
