@@ -214,11 +214,40 @@ function formatDatabaseResults(records: any[], totalCount: number): string {
         brandStats[brand].volume += parseCurrency(r.volume);
     });
 
+    // Group by brand + country (for detailed breakdowns)
+    const brandCountryStats: Record<string, Record<string, { budget: number; campaigns: number }>> = {};
+    records.forEach((r) => {
+        const brand = r.brand || 'Unknown';
+        const country = r.country || 'Unknown';
+        if (!brandCountryStats[brand]) brandCountryStats[brand] = {};
+        if (!brandCountryStats[brand][country]) brandCountryStats[brand][country] = { budget: 0, campaigns: 0 };
+        brandCountryStats[brand][country].budget += parseCurrency(r.budget);
+        brandCountryStats[brand][country].campaigns += 1;
+    });
+
+    // Group by brand + channel (for channel mix by brand)
+    const brandChannelStats: Record<string, Record<string, number>> = {};
+    records.forEach((r) => {
+        const brand = r.brand || 'Unknown';
+        const channel = r.channel || 'Unknown';
+        if (!brandChannelStats[brand]) brandChannelStats[brand] = {};
+        brandChannelStats[brand][channel] = (brandChannelStats[brand][channel] || 0) + 1;
+    });
+
     // Group by channel
     const channelStats: Record<string, number> = {};
     records.forEach((r) => {
         const channel = r.channel || 'Unknown';
         channelStats[channel] = (channelStats[channel] || 0) + 1;
+    });
+
+    // Group by country
+    const countryStats: Record<string, { budget: number; campaigns: number }> = {};
+    records.forEach((r) => {
+        const country = r.country || 'Unknown';
+        if (!countryStats[country]) countryStats[country] = { budget: 0, campaigns: 0 };
+        countryStats[country].budget += parseCurrency(r.budget);
+        countryStats[country].campaigns += 1;
     });
 
     // Group by month
@@ -240,29 +269,67 @@ function formatDatabaseResults(records: any[], totalCount: number): string {
         date: r.date ? r.date.substring(0, 10) : null,
     }));
 
+    // Format brand-country breakdown for top 5 brands
+    const topBrands = Object.keys(brandStats)
+        .sort((a, b) => brandStats[b].budget - brandStats[a].budget)
+        .slice(0, 5);
+
+    const brandCountryBreakdowns = topBrands.map(brand => {
+        const countries = Object.entries(brandCountryStats[brand] || {})
+            .sort((a, b) => b[1].budget - a[1].budget)
+            .map(([country, stats]) =>
+                `    ${country}: ${formatCurrency(stats.budget)} (${stats.campaigns} campaigns)`
+            )
+            .join('\n');
+        return `  ${brand}:\n${countries}`;
+    }).join('\n\n');
+
+    // Format brand-channel breakdown for top 5 brands
+    const brandChannelBreakdowns = topBrands.map(brand => {
+        const channels = Object.entries(brandChannelStats[brand] || {})
+            .sort((a, b) => b[1] - a[1])
+            .map(([channel, count]) => `    ${channel}: ${count} campaigns`)
+            .join('\n');
+        return `  ${brand}:\n${channels}`;
+    }).join('\n\n');
+
     return `
 DATABASE QUERY RESULTS (${records.length} campaigns found):
 
-AGGREGATED STATISTICS:
+OVERALL STATISTICS:
 - Total Budget: ${formatCurrency(totalBudget)}
 - Total Volume: ${totalVolume.toLocaleString()}
 - Total Campaigns: ${records.length}
 
-BREAKDOWN BY BRAND:
+TOP BRANDS (by budget):
 ${Object.entries(brandStats)
     .sort((a, b) => b[1].budget - a[1].budget)
     .slice(0, 10)
     .map(([brand, stats]) =>
-        `  - ${brand}: ${formatCurrency(stats.budget)} budget, ${stats.campaigns} campaigns, ${stats.volume.toLocaleString()} volume`
+        `  - ${brand}: ${formatCurrency(stats.budget)}, ${stats.campaigns} campaigns, ${stats.volume.toLocaleString()} volume`
     )
     .join('\n')}
 
-BREAKDOWN BY CHANNEL:
+COUNTRY BREAKDOWN (overall):
+${Object.entries(countryStats)
+    .sort((a, b) => b[1].budget - a[1].budget)
+    .map(([country, stats]) =>
+        `  - ${country}: ${formatCurrency(stats.budget)}, ${stats.campaigns} campaigns`
+    )
+    .join('\n')}
+
+BRAND BREAKDOWN BY COUNTRY (top 5 brands):
+${brandCountryBreakdowns}
+
+CHANNEL BREAKDOWN (overall):
 ${Object.entries(channelStats)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
     .map(([channel, count]) => `  - ${channel}: ${count} campaigns`)
     .join('\n')}
+
+BRAND BREAKDOWN BY CHANNEL (top 5 brands):
+${brandChannelBreakdowns}
 
 MONTHLY ACTIVITY:
 ${Object.entries(monthlyActivity)
@@ -273,7 +340,7 @@ ${Object.entries(monthlyActivity)
 SAMPLE RECORDS (Top 10 by budget):
 ${JSON.stringify(sampleRecords, null, 2)}
 
-Use the statistics above to provide SPECIFIC numbers in your answer.
+Use these detailed breakdowns to answer questions about country distribution, channel mix, and brand-specific data.
 `;
 }
 
