@@ -380,7 +380,9 @@ INSTRUCTIONS:
 - Answer with SPECIFIC NUMBERS from the database statistics below
 - Format: "$X across Y campaigns" with proper commas
 - If no data found, say so clearly
-- Keep answers concise and data-driven
+- **IMPORTANT: Keep answers CONCISE (max 200 words)**
+- Use bullet points for clarity
+- Avoid repetition
 
 KNOWLEDGE BASE:
 ${MENA_KNOWLEDGE_BASE}
