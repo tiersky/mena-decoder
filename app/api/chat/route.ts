@@ -274,10 +274,10 @@ SUGGESTION: Try without date filters or check if the brand name is spelled corre
         date: r.date ? r.date.substring(0, 10) : null,
     }));
 
-    // Format brand-country breakdown for top 5 brands
+    // Format brand-country breakdown for top 15 brands
     const topBrands = Object.keys(brandStats)
         .sort((a, b) => brandStats[b].budget - brandStats[a].budget)
-        .slice(0, 5);
+        .slice(0, 15);
 
     const brandCountryBreakdowns = topBrands.map(brand => {
         const countries = Object.entries(brandCountryStats[brand] || {})
@@ -323,7 +323,7 @@ ${Object.entries(countryStats)
     )
     .join('\n')}
 
-BRAND BREAKDOWN BY COUNTRY (top 5 brands):
+BRAND BREAKDOWN BY COUNTRY (top 15 brands):
 ${brandCountryBreakdowns}
 
 CHANNEL BREAKDOWN (overall):
@@ -333,7 +333,7 @@ ${Object.entries(channelStats)
     .map(([channel, count]) => `  - ${channel}: ${count} campaigns`)
     .join('\n')}
 
-BRAND BREAKDOWN BY CHANNEL (top 5 brands):
+BRAND BREAKDOWN BY CHANNEL (top 15 brands):
 ${brandChannelBreakdowns}
 
 MONTHLY ACTIVITY:
