@@ -99,9 +99,10 @@ function extractQueryFilters(question: string): {
     const currentMonth = new Date().getMonth() + 1;
 
     // Year-based
-    const year2024Match = lowerQuestion.match(/2024|last year/);
-    const year2025Match = lowerQuestion.match(/2025|this year/);
-    const year2023Match = lowerQuestion.match(/2023/);
+    // Only apply date filters for EXPLICIT years, not ambiguous phrases like "last year"
+    const year2024Match = lowerQuestion.match(/\b2024\b/);
+    const year2025Match = lowerQuestion.match(/\b2025\b|this year/);
+    const year2023Match = lowerQuestion.match(/\b2023\b/);
 
     // Quarter-based
     const q1Match = lowerQuestion.match(/q1|first quarter|quarter 1/);
@@ -195,9 +196,13 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
 /**
  * Format raw data for GPT (HYBRID: Statistics + Sample Records)
  */
-function formatDatabaseResults(records: any[], totalCount: number): string {
+function formatDatabaseResults(records: any[], totalCount: number, appliedFilters: any): string {
     if (!records || records.length === 0) {
-        return 'No matching data found in the database for the specified filters.';
+        return `No matching data found in the database.
+
+Applied filters were: ${JSON.stringify(appliedFilters, null, 2)}
+
+SUGGESTION: Try without date filters or check if the brand name is spelled correctly. The database contains data for brands like: Talabat, Careem, Deliveroo, Noon, Keeta, Amazon, Jahez, HungerStation, etc.`;
     }
 
     // Calculate aggregates
@@ -364,9 +369,10 @@ export async function POST(req: Request) {
 
         const { records, totalCount } = await queryDatabase(filters);
         console.log(`Query returned ${records.length} records`);
+        console.log(`Applied filters:`, JSON.stringify(filters, null, 2));
 
         // Format raw data (NO SUMMARIZATION)
-        const databaseContext = formatDatabaseResults(records, totalCount);
+        const databaseContext = formatDatabaseResults(records, totalCount, filters);
 
         const systemPrompt = `You are a Strategic Analyst for MENA Food Delivery Market.
 
