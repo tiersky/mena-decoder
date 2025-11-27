@@ -44,6 +44,9 @@ export default function Dashboard() {
     e.preventDefault();
     if (!input.trim() || isAiLoading) return;
 
+    // Prevent default and stop propagation to avoid React event issues
+    e.stopPropagation();
+
     const userMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -83,6 +86,8 @@ export default function Dashboard() {
         }]);
 
         let assistantContent = '';
+        let lastUpdateTime = Date.now();
+        const UPDATE_INTERVAL = 100; // Update UI every 100ms max
 
         try {
           let readCount = 0;
@@ -110,22 +115,39 @@ export default function Dashboard() {
               const chunk = decoder.decode(value, { stream: true });
               assistantContent += chunk;
 
-              // Update message in real-time (batch updates every 50ms to avoid too many renders)
-              setMessages(prev => {
-                const newMessages = [...prev];
-                if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
-                  newMessages[newMessages.length - 1] = {
-                    ...newMessages[newMessages.length - 1],
-                    content: assistantContent,
-                  };
-                }
-                return newMessages;
-              });
+              // Throttle updates to prevent too many re-renders
+              const now = Date.now();
+              if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+                lastUpdateTime = now;
+
+                setMessages(prev => {
+                  const newMessages = [...prev];
+                  if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
+                    newMessages[newMessages.length - 1] = {
+                      ...newMessages[newMessages.length - 1],
+                      content: assistantContent,
+                    };
+                  }
+                  return newMessages;
+                });
+              }
             } catch (decodeError: any) {
               console.warn('Decode error:', decodeError.message);
               continue; // Skip this chunk
             }
           }
+
+          // Final update with complete content
+          setMessages(prev => {
+            const newMessages = [...prev];
+            if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
+              newMessages[newMessages.length - 1] = {
+                ...newMessages[newMessages.length - 1],
+                content: assistantContent,
+              };
+            }
+            return newMessages;
+          });
 
           // Mark that we have content
           if (assistantContent.trim()) {
