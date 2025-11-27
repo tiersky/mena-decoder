@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createSupabaseClient } from '@/utils/supabase/client';
 import ChartSection from '@/components/ChartSection';
 import SOVAnalysis from '@/components/SOVAnalysis';
@@ -64,13 +64,16 @@ export default function Dashboard() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to get response');
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
       if (reader) {
-        //Add placeholder message
+        // Add placeholder message
         setMessages(prev => [...prev, {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -78,13 +81,33 @@ export default function Dashboard() {
         }]);
 
         let assistantContent = '';
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
+          // Decode chunk
           const chunk = decoder.decode(value, { stream: true });
-          assistantContent += chunk;
 
+          // Parse AI SDK stream format (lines starting with "0:" contain text)
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('0:')) {
+              // Remove the "0:" prefix and parse the JSON
+              try {
+                const textPart = line.slice(2);
+                assistantContent += textPart;
+              } catch (e) {
+                // If it's not JSON, just append as-is
+                assistantContent += line.slice(2);
+              }
+            } else if (line.trim() && !line.startsWith('2:') && !line.startsWith('d:')) {
+              // Plain text line (fallback)
+              assistantContent += line;
+            }
+          }
+
+          // Update message
           setMessages(prev => {
             const newMessages = [...prev];
             newMessages[newMessages.length - 1] = {

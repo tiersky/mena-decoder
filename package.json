@@ -21,7 +21,7 @@
     "@ai-sdk/react": "^2.0.97",
     "@supabase/supabase-js": "^2.83.0",
     "@types/d3-scale": "^4.0.9",
-    "ai": "^5.0.95",
+    "ai": "^5.0.104",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.2",

@@ -380,7 +380,7 @@ INSTRUCTIONS:
 - Answer with SPECIFIC NUMBERS from the database statistics below
 - Format: "$X across Y campaigns" with proper commas
 - If no data found, say so clearly
-- **IMPORTANT: Keep answers CONCISE (max 200 words)**
+- **IMPORTANT: Keep answers CONCISE (max 500 words)**
 - Use bullet points for clarity
 - Avoid repetition
 
