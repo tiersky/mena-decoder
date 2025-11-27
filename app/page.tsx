@@ -86,28 +86,11 @@ export default function Dashboard() {
           const { done, value } = await reader.read();
           if (done) break;
 
-          // Decode chunk
+          // Decode chunk as plain text
           const chunk = decoder.decode(value, { stream: true });
+          assistantContent += chunk;
 
-          // Parse AI SDK stream format (lines starting with "0:" contain text)
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('0:')) {
-              // Remove the "0:" prefix and parse the JSON
-              try {
-                const textPart = line.slice(2);
-                assistantContent += textPart;
-              } catch (e) {
-                // If it's not JSON, just append as-is
-                assistantContent += line.slice(2);
-              }
-            } else if (line.trim() && !line.startsWith('2:') && !line.startsWith('d:')) {
-              // Plain text line (fallback)
-              assistantContent += line;
-            }
-          }
-
-          // Update message
+          // Update message in real-time
           setMessages(prev => {
             const newMessages = [...prev];
             newMessages[newMessages.length - 1] = {
@@ -118,13 +101,40 @@ export default function Dashboard() {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-      }]);
+      console.error('Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
+
+      // Update the last message if it exists and has content (partial response before error)
+      // Otherwise add a new error message
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant') {
+          // If we have partial content, keep it and note there was an error
+          if (lastMsg.content && lastMsg.content.trim()) {
+            return prev; // Keep the partial response, don't add error
+          } else {
+            // Replace empty placeholder with error message
+            const newMessages = [...prev];
+            newMessages[newMessages.length - 1] = {
+              ...lastMsg,
+              content: `Sorry, I encountered an error: ${error?.message || 'Unknown error'}. Please try again.`,
+            };
+            return newMessages;
+          }
+        } else {
+          // No assistant message yet, add error message
+          return [...prev, {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: `Sorry, I encountered an error: ${error?.message || 'Unknown error'}. Please try again.`,
+          }];
+        }
+      });
     } finally {
       setIsAiLoading(false);
     }
