@@ -10,7 +10,7 @@ export default function HeyGenAvatar() {
     }
 
     const host = "https://labs.heygen.com";
-    const url = host + "/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiIzOThhNTIwMjU5Yjc0OWIxYWE2YTE2ODlm%0D%0AYjIzNWZkNCIsInByZXZpZXdJbWciOiJodHRwczovL2ZpbGVzMi5oZXlnZW4uYWkvYXZhdGFyL3Yz%0D%0ALzM5OGE1MjAyNTliNzQ5YjFhYTZhMTY4OWZiMjM1ZmQ0L2Z1bGwvMi4yL3ByZXZpZXdfdGFyZ2V0%0D%0ALndlYnAiLCJuZWVkUmVtb3ZlQmFja2dyb3VuZCI6ZmFsc2UsImtub3dsZWRnZUJhc2VJZCI6IjVk%0D%0AMGQ3ZjRlZDY3NTQyMTg4ZDQxYzhjZDYyZmI5YWQxIiwidXNlcm5hbWUiOiJiOWJiNjUwNTI4Yzk0%0D%0AMTgwOTI4ODc2MTA4NWFiMDYxZiJ9&inIFrame=1";
+    const url = host + "/guest/streaming-embed?share=eyJxdWFsaXR5IjoiaGlnaCIsImF2YXRhck5hbWUiOiJSaWthX0JsdWVfU3VpdF9wdWJsaWMiLCJw%0D%0AcmV2aWV3SW1nIjoiaHR0cHM6Ly9maWxlczIuaGV5Z2VuLmFpL2F2YXRhci92My9lOWE2OTMzZTEw%0D%0AZjk0MjczYTcyYTQ4NGQ5OWZmNTYxOF81NTQzMC9wcmV2aWV3X3RhbGtfMS53ZWJwIiwibmVlZFJl%0D%0AbW92ZUJhY2tncm91bmQiOnRydWUsImtub3dsZWRnZUJhc2VJZCI6IjVkMGQ3ZjRlZDY3NTQyMTg4%0D%0AZDQxYzhjZDYyZmI5YWQxIiwidXNlcm5hbWUiOiJiOWJiNjUwNTI4Yzk0MTgwOTI4ODc2MTA4NWFi%0D%0AMDYxZiJ9&inIFrame=1";
 
     const clientWidth = document.body.clientWidth;
     const wrapDiv = document.createElement("div");
@@ -24,7 +24,7 @@ export default function HeyGenAvatar() {
       #heygen-streaming-embed {
         z-index: 9999;
         position: fixed;
-        left: 40px;
+        right: 40px;
         bottom: 40px;
         width: 200px;
         height: 200px;
