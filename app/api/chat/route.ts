@@ -179,8 +179,8 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
         }
     }
 
-    // Sort by budget descending and INCREASE LIMIT to 2000
-    query = query.order('budget', { ascending: false }).limit(2000);
+    // Sort by budget descending and limit to 500 for fast response
+    query = query.order('budget', { ascending: false }).limit(500);
 
     const { data, error, count } = await query;
 
@@ -193,32 +193,87 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
 }
 
 /**
- * Format raw data for GPT (TOP 100 RECORDS AS JSON)
+ * Format raw data for GPT (HYBRID: Statistics + Sample Records)
  */
 function formatDatabaseResults(records: any[], totalCount: number): string {
     if (!records || records.length === 0) {
         return 'No matching data found in the database for the specified filters.';
     }
 
-    // Take top 100 most relevant records
-    const topRecords = records.slice(0, 100).map(r => ({
+    // Calculate aggregates
+    const totalBudget = records.reduce((acc, r) => acc + parseCurrency(r.budget), 0);
+    const totalVolume = records.reduce((acc, r) => acc + parseCurrency(r.volume), 0);
+
+    // Group by brand
+    const brandStats: Record<string, { budget: number; campaigns: number; volume: number }> = {};
+    records.forEach((r) => {
+        const brand = r.brand || 'Unknown';
+        if (!brandStats[brand]) brandStats[brand] = { budget: 0, campaigns: 0, volume: 0 };
+        brandStats[brand].budget += parseCurrency(r.budget);
+        brandStats[brand].campaigns += 1;
+        brandStats[brand].volume += parseCurrency(r.volume);
+    });
+
+    // Group by channel
+    const channelStats: Record<string, number> = {};
+    records.forEach((r) => {
+        const channel = r.channel || 'Unknown';
+        channelStats[channel] = (channelStats[channel] || 0) + 1;
+    });
+
+    // Group by month
+    const monthlyActivity: Record<string, number> = {};
+    records.forEach((r) => {
+        if (r.date) {
+            const month = r.date.substring(0, 7); // YYYY-MM
+            monthlyActivity[month] = (monthlyActivity[month] || 0) + 1;
+        }
+    });
+
+    // Take top 20 sample records for context
+    const sampleRecords = records.slice(0, 20).map(r => ({
         brand: r.brand,
         country: r.country,
-        category: r.category,
         media: r.media,
         channel: r.channel,
         budget: r.budget,
-        volume: r.volume,
-        date: r.date,
+        date: r.date ? r.date.substring(0, 10) : null,
     }));
 
     return `
-Found ${records.length} matching campaigns${totalCount > records.length ? ` (total: ${totalCount}, showing top ${records.length})` : ''}.
+DATABASE QUERY RESULTS (${records.length} campaigns found):
 
-TOP 100 CAMPAIGN RECORDS (sorted by budget):
-${JSON.stringify(topRecords, null, 2)}
+AGGREGATED STATISTICS:
+- Total Budget: ${formatCurrency(totalBudget)}
+- Total Volume: ${totalVolume.toLocaleString()}
+- Total Campaigns: ${records.length}
 
-You can analyze these records to answer the user's question with SPECIFIC numbers, dates, and details.
+BREAKDOWN BY BRAND:
+${Object.entries(brandStats)
+    .sort((a, b) => b[1].budget - a[1].budget)
+    .slice(0, 10)
+    .map(([brand, stats]) =>
+        `  - ${brand}: ${formatCurrency(stats.budget)} budget, ${stats.campaigns} campaigns, ${stats.volume.toLocaleString()} volume`
+    )
+    .join('\n')}
+
+BREAKDOWN BY CHANNEL:
+${Object.entries(channelStats)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([channel, count]) => `  - ${channel}: ${count} campaigns`)
+    .join('\n')}
+
+MONTHLY ACTIVITY:
+${Object.entries(monthlyActivity)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([month, count]) => `  - ${month}: ${count} campaigns`)
+    .join('\n')}
+
+SAMPLE RECORDS (Top 20 by budget):
+${JSON.stringify(sampleRecords, null, 2)}
+
+Use the statistics above to provide SPECIFIC numbers in your answer. The sample records show actual campaign examples.
 `;
 }
 
