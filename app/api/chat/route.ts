@@ -325,7 +325,7 @@ Today: ${new Date().toISOString().split('T')[0]}
         console.log('Valid messages count:', validMessages.length);
 
         const result = streamText({
-            model: openai('gpt-4o'),
+            model: openai('gpt-4o-mini'), // Using mini for higher rate limits (200k TPM vs 30k)
             system: systemPrompt,
             messages: validMessages,
         });
