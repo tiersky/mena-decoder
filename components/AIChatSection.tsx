@@ -22,7 +22,7 @@ const AIChatSection = memo(function AIChatSection({
         <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10">
             <div className="flex items-center gap-2 mb-4">
                 <Bot className="w-6 h-6 text-[#FF5900]" />
-                <h3 className="text-lg font-bold text-[#431412]">AI Strategic Analyst</h3>
+                <h3 className="text-lg font-bold text-[#431412]">AI Analyst</h3>
             </div>
 
             <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
@@ -64,7 +64,7 @@ const AIChatSection = memo(function AIChatSection({
                     type="text"
                     value={input}
                     onChange={onInputChange}
-                    placeholder="Ask a strategic question..."
+                    placeholder="Ask the agent a question, e.g., &quot;What was Talabat’s spend in the UAE last year?&quot;"
                     className="flex-1 rounded-md border-[#431412]/20 text-sm p-3 border focus:ring-2 focus:ring-[#FF5900]"
                     disabled={isLoading}
                 />
