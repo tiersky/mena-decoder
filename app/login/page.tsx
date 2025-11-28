@@ -113,11 +113,9 @@ export default function LoginPage() {
           {/* Info */}
           <div className="mt-6 p-4 bg-[#CFFF00]/20 rounded-lg border border-[#431412]/10">
             <p className="text-sm text-[#431412] text-center">
-              <strong>Default credentials:</strong>
+              Use your assigned credentials to sign in.
               <br />
-              Username: admin
-              <br />
-              Password: admin123
+              Contact your administrator if you need access.
             </p>
           </div>
         </div>
