@@ -36,6 +36,18 @@ const VALID_USERS: Record<string, { email: string; passwordHash: string }> = {
     email: 'abdelmonem.gabr@talabat.com',
     passwordHash: '$2b$10$/dVxWycmVnYHjGjyiWRj2OJUrhaGZZjRFL87nyCKEsJGHkeHF1n6a',
   },
+  'sshamiyeh': {
+    email: 'sara.shamiyeh@talabat.com',
+    passwordHash: '$2b$10$PCyTfZP9y7nXj.0z2i7woexJwo/B.fqhyuy9KGXI6ZVBuxHqsM5fm',
+  },
+  'mhaji': {
+    email: 'mare.haji@talabat.com',
+    passwordHash: '$2b$10$PxLmlh6MkI8NEYqg8jG15ueKQ.CAPKvY4hHju3AL6qf0snz1BKkL.',
+  },
+  'hibrahiem': {
+    email: 'honida.ibrahiem@talabat.com',
+    passwordHash: '$2b$10$rymobmrdZOY5h0aXDIU79ebufeXENfc54XyOp3dRtYqvNfZsTn5iS',
+  },
 };
 
 const handler = NextAuth({
