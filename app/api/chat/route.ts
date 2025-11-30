@@ -180,23 +180,60 @@ async function queryDatabase(filters: ReturnType<typeof extractQueryFilters>) {
         }
     }
 
-    // Sort by budget descending and limit to 200 for very fast response
-    query = query.order('budget', { ascending: false }).limit(200);
+    // Get total count first for accurate reporting
+    const countQuery = supabase
+        .from('unified_competitive_stats')
+        .select('*', { count: 'exact', head: true });
 
-    const { data, error, count } = await query;
+    // Apply same filters to count query
+    if (filters.brands && filters.brands.length > 0) {
+        const brandConditions = filters.brands.map(b => `brand.ilike.%${b}%`).join(',');
+        countQuery.or(brandConditions);
+    }
+    if (filters.countries && filters.countries.length > 0) {
+        countQuery.in('country', filters.countries);
+    }
+    if (filters.media && filters.media.length > 0) {
+        countQuery.in('media', filters.media);
+    }
+    if (filters.dateRange?.start) {
+        countQuery.gte('date', filters.dateRange.start);
+    }
+    if (filters.dateRange?.end) {
+        countQuery.lte('date', filters.dateRange.end);
+    }
+
+    const { count: totalCount } = await countQuery;
+
+    // Fetch ALL matching records for accurate aggregation (up to 10,000)
+    // For numerical accuracy, we need all records not just top 200
+    query = query.order('budget', { ascending: false }).limit(10000);
+
+    const { data, error } = await query;
 
     if (error) {
         console.error('Supabase query error:', error);
-        return { records: [], totalCount: 0 };
+        return { records: [], totalCount: 0, truncated: false };
     }
 
-    return { records: data || [], totalCount: count || data?.length || 0 };
+    const isTruncated = (totalCount || 0) > 10000;
+
+    return {
+        records: data || [],
+        totalCount: totalCount || data?.length || 0,
+        truncated: isTruncated
+    };
 }
 
 /**
  * Format raw data for GPT (HYBRID: Statistics + Sample Records)
  */
-function formatDatabaseResults(records: any[], totalCount: number, appliedFilters: any): string {
+function formatDatabaseResults(
+    records: any[],
+    totalCount: number,
+    appliedFilters: any,
+    truncated: boolean = false
+): string {
     if (!records || records.length === 0) {
         return `No matching data found in the database.
 
@@ -204,6 +241,10 @@ Applied filters were: ${JSON.stringify(appliedFilters, null, 2)}
 
 SUGGESTION: Try without date filters or check if the brand name is spelled correctly. The database contains data for brands like: Talabat, Careem, Deliveroo, Noon, Keeta, Amazon, Jahez, HungerStation, etc.`;
     }
+
+    const dataAccuracyNote = truncated
+        ? `⚠️ DATA NOTE: Query returned ${totalCount} total records but only ${records.length} were analyzed. Numbers may be approximate.`
+        : `✓ DATA ACCURACY: All ${totalCount} matching records analyzed. Numbers are EXACT.`;
 
     // Calculate aggregates (ratecard budget)
     const totalBudget = records.reduce((acc, r) => acc + parseCurrency(r.budget), 0);
@@ -316,16 +357,20 @@ SUGGESTION: Try without date filters or check if the brand name is spelled corre
     const onlineRecords = records.filter(r => r.media && r.media.toUpperCase() === 'ONLINE');
 
     return `
-DATABASE QUERY RESULTS (${records.length} campaigns found):
+DATABASE QUERY RESULTS (${totalCount} campaigns found):
+
+${dataAccuracyNote}
 
 OVERALL STATISTICS:
 - Total Ratecard Budget: ${formatCurrency(totalBudget)} (published/list price - media value before negotiations)
 - Total Net Spend: ${formatCurrency(totalNetBudget)} (actual negotiated cost paid)
 - Savings from Negotiations: ${formatCurrency(savingsAmount)} (${savingsPercentage}% savings rate)
 - Total Volume: ${totalVolume.toLocaleString()}
-- Total Campaigns: ${records.length}
+- Total Campaigns: ${totalCount}
 - Offline Campaigns (TV/Radio/OOH): ${offlineRecords.length} (has net spend data)
 - Online Campaigns (Digital): ${onlineRecords.length} (net = ratecard, no negotiation data)
+
+CRITICAL: When answering questions about spend/budget, use the EXACT numbers above. Do NOT estimate or round significantly.
 
 INTERPRETATION GUIDE:
 - ${hasNetData ? `This data includes negotiated rates. The ${savingsPercentage}% savings shows media buying effectiveness.` : 'This data is primarily online - net spend equals ratecard (no negotiation margin).'}
@@ -392,12 +437,12 @@ export async function POST(req: Request) {
         const filters = extractQueryFilters(userQuestion);
         console.log('Extracted filters:', JSON.stringify(filters, null, 2));
 
-        const { records, totalCount } = await queryDatabase(filters);
-        console.log(`Query returned ${records.length} records`);
+        const { records, totalCount, truncated } = await queryDatabase(filters);
+        console.log(`Query returned ${records.length} records (total: ${totalCount}, truncated: ${truncated})`);
         console.log(`Applied filters:`, JSON.stringify(filters, null, 2));
 
-        // Format raw data (NO SUMMARIZATION)
-        const databaseContext = formatDatabaseResults(records, totalCount, filters);
+        // Format raw data with accuracy indicator
+        const databaseContext = formatDatabaseResults(records, totalCount, filters, truncated);
 
         const systemPrompt = `You are a Strategic Analyst for MENA Food Delivery Market.
 
