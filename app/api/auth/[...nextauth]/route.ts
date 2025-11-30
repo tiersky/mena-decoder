@@ -48,6 +48,34 @@ const VALID_USERS: Record<string, { email: string; passwordHash: string }> = {
     email: 'honida.ibrahiem@talabat.com',
     passwordHash: '$2b$10$rymobmrdZOY5h0aXDIU79ebufeXENfc54XyOp3dRtYqvNfZsTn5iS',
   },
+  'arefaat': {
+    email: 'ahmed.refaat@talabat.com',
+    passwordHash: '$2b$10$vkOATZJtbisOAl70BGZbqekSTpRZAvtH50qWmMqOhp8ijAQAni196',
+  },
+  'kfouad': {
+    email: 'karim.fouad@talabat.com',
+    passwordHash: '$2b$10$6w5BmhKbkv2c1mpxk14dHee2dQZ7KzyPMMgE5wbgYCcDXlZxF.G9C',
+  },
+  'melhamy': {
+    email: 'Mahmoud.elhamy@talabat.com',
+    passwordHash: '$2b$10$D6a27Hc1GVIwapaZbFjW.uEVC7eVglU6VfOJiXcRg32do8xeC0LGO',
+  },
+  'aashraf': {
+    email: 'amr.ashraf@talabat.com',
+    passwordHash: '$2b$10$0XV1Eb8Ug3sR0paYyyh4COYktRooLoCLE21pae8UJCPuCmNfeJfWy',
+  },
+  'aabbas': {
+    email: 'ahmad.d.abbas@talabat.com',
+    passwordHash: '$2b$10$tjHf9d9UJEXsCLSHE0I9Fe0quX8ZeYnVnfTu1MfYa1fiPoG7Zyaae',
+  },
+  'salwahaibi': {
+    email: 'suha.alwahaibi@talabat.com',
+    passwordHash: '$2b$10$JxzdHNSoZAyjIfUT5C2.2uHacgiEHEUVp4pd2.6TmW/OTnXQSMyG2',
+  },
+  'nalabdullah': {
+    email: 'naser.alabdullah@talabat.com',
+    passwordHash: '$2b$10$YbSu1OJ9Xy6w0psPByYxQeRSmVZTM1RmKyShB0O4wjIVWWjzxxClC',
+  },
 };
 
 const handler = NextAuth({
