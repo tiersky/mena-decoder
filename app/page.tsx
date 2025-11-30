@@ -515,7 +515,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
                 <p className="text-sm font-semibold text-[#431412]/70">Campaigns</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
@@ -524,19 +524,23 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-[#431412]/70">Active Brands</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
               </div>
+              {/* Combined Budget Card */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-[#431412]/70">Ratecard Spend</p>
+                  <p className="text-xl font-extrabold text-[#FF5900]">${totalBudget.toLocaleString()}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-[#431412]/70">Net Spend</p>
+                  <p className="text-xl font-extrabold text-[#00A86B]">${totalNetBudget.toLocaleString()}</p>
+                </div>
+                <p className="text-xs text-[#431412]/50 mt-2">Net = actual negotiated cost (offline) + ratecard (online)</p>
+              </div>
+              {/* Savings Card */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
                 <p className="text-sm font-semibold text-[#431412]/70">Negotiation Savings</p>
                 <p className="text-3xl font-extrabold text-[#8B5CF6] mt-2">{savingsPercentage}%</p>
-                <p className="text-xs text-[#431412]/50 mt-1">${savingsAmount.toLocaleString()} saved</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
-                <p className="text-sm font-semibold text-[#431412]/70">Total Ratecard Spend</p>
-                <p className="text-3xl font-extrabold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
-                <p className="text-sm font-semibold text-[#431412]/70">Total Net Spend</p>
-                <p className="text-3xl font-extrabold text-[#00A86B] mt-2">${totalNetBudget.toLocaleString()}</p>
-                <p className="text-xs text-[#431412]/50 mt-1">Actual negotiated cost (offline) + ratecard (online)</p>
+                <p className="text-xs text-[#431412]/50 mt-1">${savingsAmount.toLocaleString()} saved vs ratecard</p>
               </div>
             </div>
           </div>

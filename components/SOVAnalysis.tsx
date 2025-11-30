@@ -431,14 +431,18 @@ export default function SOVAnalysis({ data, budgetView }: SOVAnalysisProps) {
 
             {/* Dynamic Stats Footer */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#431412]/10">
-                <div className="bg-[#FF5900]/10 p-4 rounded-lg flex items-center justify-between">
+                <div className={`${budgetView === 'net' ? 'bg-[#00A86B]/10' : 'bg-[#FF5900]/10'} p-4 rounded-lg flex items-center justify-between`}>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#FF5900]/20 rounded-full">
-                            <DollarSign className="w-5 h-5 text-[#FF5900]" />
+                        <div className={`p-2 ${budgetView === 'net' ? 'bg-[#00A86B]/20' : 'bg-[#FF5900]/20'} rounded-full`}>
+                            <DollarSign className={`w-5 h-5 ${budgetView === 'net' ? 'text-[#00A86B]' : 'text-[#FF5900]'}`} />
                         </div>
                         <div>
-                            <p className="text-sm text-[#431412]/70 font-semibold">Total Spend</p>
-                            <p className="text-xl font-extrabold text-[#431412]">{formatCurrency(stats.totalSpend)}</p>
+                            <p className="text-sm text-[#431412]/70 font-semibold">
+                                Total {budgetView === 'net' ? 'Net' : 'Ratecard'} Spend
+                            </p>
+                            <p className={`text-xl font-extrabold ${budgetView === 'net' ? 'text-[#00A86B]' : 'text-[#431412]'}`}>
+                                {formatCurrency(stats.totalSpend)}
+                            </p>
                         </div>
                     </div>
                 </div>
