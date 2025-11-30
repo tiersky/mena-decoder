@@ -33,15 +33,43 @@ export default function ChartSection({ data, budgetView }: ChartSectionProps) {
         const brandBudgetByMonth: Record<string, Record<string, number>> = {};
         const brandTotals: Record<string, number> = {};
 
+        // Helper to parse date in various formats (MM/DD/YYYY or YYYY-MM-DD)
+        const parseDate = (dateStr: string): { year: number; month: number } | null => {
+            if (!dateStr) return null;
+
+            // Try MM/DD/YYYY format first (e.g., "01/04/2024" = April 1, 2024)
+            const mdyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (mdyMatch) {
+                const month = parseInt(mdyMatch[1], 10);
+                const year = parseInt(mdyMatch[3], 10);
+                return { year, month };
+            }
+
+            // Try YYYY-MM-DD format (e.g., "2024-04-01")
+            const ymdMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (ymdMatch) {
+                const year = parseInt(ymdMatch[1], 10);
+                const month = parseInt(ymdMatch[2], 10);
+                return { year, month };
+            }
+
+            // Fallback to Date parsing
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return { year: date.getFullYear(), month: date.getMonth() + 1 };
+            }
+
+            return null;
+        };
+
         // First pass: calculate monthly budgets and total per brand
         data.forEach((item) => {
             if (!item.date || !item.brand || !item.budget) return;
 
-            const date = new Date(item.date);
-            // Ensure valid date
-            if (isNaN(date.getTime())) return;
+            const parsed = parseDate(item.date);
+            if (!parsed) return;
 
-            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            const monthKey = `${parsed.year}-${String(parsed.month).padStart(2, '0')}`;
             const brand = item.brand;
             const budget = getBudgetValue(item, budgetView);
 
