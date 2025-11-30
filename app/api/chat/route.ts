@@ -6,8 +6,8 @@ import { getDocxContent } from '@/utils/docx-parser';
 import fs from 'fs';
 import path from 'path';
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+// Allow streaming responses up to 60 seconds for complex queries
+export const maxDuration = 60;
 
 // Verify OpenAI API Key is available
 if (!process.env.OPENAI_API_KEY) {
@@ -15,16 +15,154 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 // Load MENA knowledge base
-const MENA_KNOWLEDGE_BASE = fs.readFileSync(
-    path.join(process.cwd(), 'mena_knowledge_base.txt'),
-    'utf-8'
-);
+let MENA_KNOWLEDGE_BASE = '';
+try {
+    MENA_KNOWLEDGE_BASE = fs.readFileSync(
+        path.join(process.cwd(), 'mena_knowledge_base.txt'),
+        'utf-8'
+    );
+} catch {
+    console.warn('Warning: mena_knowledge_base.txt not found');
+}
 
 // Initialize Supabase client
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// Cache for summary table (refreshes every 5 minutes)
+let summaryTableCache: { data: string; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Generate pre-computed summary table for major brands
+ * This is the AI's "go-to" reference for quick answers
+ */
+async function generateSummaryTable(): Promise<string> {
+    // Check cache
+    if (summaryTableCache && Date.now() - summaryTableCache.timestamp < CACHE_TTL) {
+        return summaryTableCache.data;
+    }
+
+    try {
+        // Fetch all data for comprehensive summary
+        const { data: allRecords, error } = await supabase
+            .from('unified_competitive_stats')
+            .select('brand, country, media, budget, net_budget, date')
+            .limit(50000);
+
+        if (error || !allRecords) {
+            console.error('Failed to generate summary table:', error);
+            return 'Summary table unavailable - query database directly.';
+        }
+
+        // Aggregate by brand
+        const brandSummary: Record<string, {
+            totalRatecard: number;
+            totalNet: number;
+            campaigns: number;
+            countries: Set<string>;
+            months: Set<string>;
+            mediaTypes: Set<string>;
+        }> = {};
+
+        // Aggregate by brand + country
+        const brandCountrySummary: Record<string, Record<string, {
+            ratecard: number;
+            net: number;
+            campaigns: number;
+        }>> = {};
+
+        allRecords.forEach((r: any) => {
+            const brand = (r.brand || 'Unknown').toUpperCase();
+            const country = r.country || 'Unknown';
+            const ratecard = parseCurrency(r.budget);
+            const net = r.net_budget ? parseCurrency(r.net_budget) : ratecard;
+            const month = r.date ? r.date.substring(0, 7) : 'Unknown';
+            const media = r.media || 'Unknown';
+
+            // Brand summary
+            if (!brandSummary[brand]) {
+                brandSummary[brand] = {
+                    totalRatecard: 0, totalNet: 0, campaigns: 0,
+                    countries: new Set(), months: new Set(), mediaTypes: new Set()
+                };
+            }
+            brandSummary[brand].totalRatecard += ratecard;
+            brandSummary[brand].totalNet += net;
+            brandSummary[brand].campaigns += 1;
+            brandSummary[brand].countries.add(country);
+            brandSummary[brand].months.add(month);
+            brandSummary[brand].mediaTypes.add(media);
+
+            // Brand + Country summary
+            if (!brandCountrySummary[brand]) brandCountrySummary[brand] = {};
+            if (!brandCountrySummary[brand][country]) {
+                brandCountrySummary[brand][country] = { ratecard: 0, net: 0, campaigns: 0 };
+            }
+            brandCountrySummary[brand][country].ratecard += ratecard;
+            brandCountrySummary[brand][country].net += net;
+            brandCountrySummary[brand][country].campaigns += 1;
+        });
+
+        // Get top 20 brands by spend
+        const topBrands = Object.entries(brandSummary)
+            .sort((a, b) => b[1].totalRatecard - a[1].totalRatecard)
+            .slice(0, 20);
+
+        // Format summary table
+        let summaryTable = `
+═══════════════════════════════════════════════════════════════════════════════
+                    MASTER SUMMARY TABLE - TOP 20 BRANDS (ALL-TIME)
+═══════════════════════════════════════════════════════════════════════════════
+
+BRAND                  | RATECARD SPEND  | NET SPEND       | CAMPAIGNS | COUNTRIES | SAVINGS %
+-----------------------|-----------------|-----------------|-----------|-----------|----------
+`;
+
+        topBrands.forEach(([brand, stats]) => {
+            const savings = stats.totalRatecard > 0
+                ? ((stats.totalRatecard - stats.totalNet) / stats.totalRatecard * 100).toFixed(1)
+                : '0.0';
+            const brandName = brand.substring(0, 22).padEnd(22);
+            const ratecard = formatCurrency(stats.totalRatecard).padStart(15);
+            const net = formatCurrency(stats.totalNet).padStart(15);
+            const campaigns = stats.campaigns.toString().padStart(9);
+            const countries = stats.countries.size.toString().padStart(9);
+            summaryTable += `${brandName} |${ratecard} |${net} |${campaigns} |${countries} | ${savings}%\n`;
+        });
+
+        // Add brand x country breakdown for top brands
+        summaryTable += `
+═══════════════════════════════════════════════════════════════════════════════
+                    BRAND SPEND BY COUNTRY (TOP 10 BRANDS)
+═══════════════════════════════════════════════════════════════════════════════
+`;
+
+        topBrands.slice(0, 10).forEach(([brand]) => {
+            const countryData = brandCountrySummary[brand] || {};
+            const sortedCountries = Object.entries(countryData)
+                .sort((a, b) => b[1].ratecard - a[1].ratecard);
+
+            summaryTable += `\n${brand}:\n`;
+            sortedCountries.forEach(([country, stats]) => {
+                const savings = stats.ratecard > 0
+                    ? ((stats.ratecard - stats.net) / stats.ratecard * 100).toFixed(1)
+                    : '0.0';
+                summaryTable += `  ${country.padEnd(10)}: Ratecard ${formatCurrency(stats.ratecard).padStart(12)}, Net ${formatCurrency(stats.net).padStart(12)}, ${stats.campaigns} campaigns (${savings}% savings)\n`;
+            });
+        });
+
+        // Cache the result
+        summaryTableCache = { data: summaryTable, timestamp: Date.now() };
+        return summaryTable;
+
+    } catch (err) {
+        console.error('Error generating summary table:', err);
+        return 'Summary table generation failed - query database directly.';
+    }
+}
 
 /**
  * Extract relevant filter criteria from the user's question (IMPROVED VERSION)
@@ -419,19 +557,68 @@ Use these detailed breakdowns to answer questions about country distribution, ch
 `;
 }
 
+/**
+ * Detect question type to provide better responses
+ */
+function detectQuestionType(question: string): {
+    isNumerical: boolean;
+    isStrategic: boolean;
+    isComparison: boolean;
+    needsClarification: boolean;
+    clarificationNeeded?: string;
+} {
+    const lower = question.toLowerCase();
+
+    const isNumerical = /spend|budget|cost|how much|total|amount|revenue|investment|\$|dollar/i.test(lower);
+    const isStrategic = /strategy|recommend|should|compete|position|market share|opportunity|threat|swot|analysis/i.test(lower);
+    const isComparison = /compare|vs|versus|difference|better|worse|more than|less than/i.test(lower);
+
+    // Check if question needs clarification
+    let needsClarification = false;
+    let clarificationNeeded: string | undefined;
+
+    // Ambiguous time reference
+    if (/last year|this year|recent/i.test(lower) && !/2024|2025|2023/i.test(lower)) {
+        needsClarification = true;
+        clarificationNeeded = 'time period';
+    }
+
+    // Missing country for spend questions
+    if (isNumerical && !/uae|ksa|saudi|qatar|kuwait|bahrain|oman|egypt|jordan|iraq|all countr/i.test(lower)) {
+        // Only flag if asking about a specific brand
+        if (/talabat|amazon|keeta|careem|deliveroo|noon|jahez/i.test(lower)) {
+            needsClarification = true;
+            clarificationNeeded = clarificationNeeded ? `${clarificationNeeded} and country` : 'country';
+        }
+    }
+
+    return { isNumerical, isStrategic, isComparison, needsClarification, clarificationNeeded };
+}
+
 export async function POST(req: Request) {
     try {
-        console.log('=== AI Chat API Request Started (Improved Version) ===');
+        console.log('=== AI Chat API Request Started (Bulletproof Version) ===');
 
         const { messages } = await req.json();
         const lastMessage = messages[messages.length - 1];
         const userQuestion = lastMessage?.content || '';
         console.log('User question:', userQuestion);
 
-        // Load DOCX content (REDUCED to 20k for faster response)
-        const docxContent = await getDocxContent();
-        const docxExcerpt = docxContent ? docxContent.substring(0, 20000) : 'Document not available';
-        console.log('DOCX content length:', docxExcerpt.length);
+        // Detect question type
+        const questionType = detectQuestionType(userQuestion);
+        console.log('Question type:', questionType);
+
+        // Generate summary table (cached for efficiency)
+        const summaryTable = await generateSummaryTable();
+        console.log('Summary table generated/cached');
+
+        // Load DOCX content (only for strategic questions, skip for numerical)
+        let docxExcerpt = '';
+        if (questionType.isStrategic) {
+            const docxContent = await getDocxContent();
+            docxExcerpt = docxContent ? docxContent.substring(0, 15000) : '';
+            console.log('DOCX loaded for strategic question');
+        }
 
         // Extract filters and query database
         const filters = extractQueryFilters(userQuestion);
@@ -439,73 +626,106 @@ export async function POST(req: Request) {
 
         const { records, totalCount, truncated } = await queryDatabase(filters);
         console.log(`Query returned ${records.length} records (total: ${totalCount}, truncated: ${truncated})`);
-        console.log(`Applied filters:`, JSON.stringify(filters, null, 2));
 
-        // Format raw data with accuracy indicator
+        // Format database results
         const databaseContext = formatDatabaseResults(records, totalCount, filters, truncated);
 
-        const systemPrompt = `You are a Strategic Analyst for MENA Food Delivery Market.
+        // Build clarification prompt if needed
+        const clarificationPrompt = questionType.needsClarification
+            ? `\n⚠️ CLARIFICATION MAY BE NEEDED: The user's question is ambiguous about ${questionType.clarificationNeeded}. If you cannot provide a precise answer, politely ask them to specify (e.g., "Which country would you like me to focus on?" or "Are you asking about 2024 or all-time data?").`
+            : '';
 
-INSTRUCTIONS:
-- Answer with SPECIFIC NUMBERS from the database statistics below
-- Format: "$X across Y campaigns" with proper commas
-- If no data found, say so clearly
-- **IMPORTANT: Keep answers CONCISE (max 500 words)**
-- Use bullet points for clarity
-- Avoid repetition
+        const systemPrompt = `You are a Senior Strategic Analyst specializing in the MENA Food Delivery & Quick Commerce market.
 
-BUDGET TERMINOLOGY & MEDIA BUYING CONTEXT:
-- "Ratecard Budget" (also called "Ratecard Spend") = The published/list price for media placements - what it would cost WITHOUT negotiations. This is the estimated media value.
-- "Net Spend" (also called "Net Budget") = The ACTUAL negotiated cost paid after media buying negotiations. This reflects the real money spent.
-- "Savings" or "Negotiation Effectiveness" = The difference between Ratecard and Net Spend, expressed as a percentage. Higher savings % = better negotiation performance.
+═══════════════════════════════════════════════════════════════════════════════
+                              RESPONSE GUIDELINES
+═══════════════════════════════════════════════════════════════════════════════
 
-IMPORTANT DATA DISTINCTIONS:
-- OFFLINE media (TV, Radio, Print, OOH): Has BOTH ratecard AND net spend data. The difference shows negotiation effectiveness.
-- ONLINE media (Digital, Social, Programmatic): Only has ratecard data. Net equals ratecard for online (no negotiation margin).
+1. **ACCURACY IS PARAMOUNT**: Use EXACT numbers from the data provided. Never estimate or make up figures.
 
-WHEN TO USE WHICH METRIC:
-- Use "Net Spend" when discussing ACTUAL investment, real costs, or budget allocation decisions
-- Use "Ratecard" when discussing media value, reach/impression equivalents, or comparing against competitors
-- Always mention "savings %" when analyzing offline media to highlight negotiation effectiveness
-- When comparing brands: Use consistent metric (preferably net spend for accuracy)
+2. **FOR NUMERICAL QUESTIONS** (spend, budget, campaigns):
+   - First check the MASTER SUMMARY TABLE below for quick answers
+   - Quote exact figures: "$X across Y campaigns in Z country"
+   - Include both Ratecard and Net Spend when relevant
+   - Mention savings percentage for offline media
 
-BUSINESS CONTEXT:
-- Media agencies negotiate discounts on offline media buys (TV, Radio, etc.)
-- A 20-30% savings rate is typical; higher indicates strong agency performance
-- This data helps assess: Are we getting good value? How do our rates compare?
+3. **FOR STRATEGIC QUESTIONS** (recommendations, analysis):
+   - Support arguments with data from the summary table
+   - Reference competitive positioning
+   - Be actionable and specific
 
-KNOWLEDGE BASE:
-${MENA_KNOWLEDGE_BASE}
+4. **FORMAT**:
+   - Keep answers CONCISE (150-300 words ideal)
+   - Use bullet points for clarity
+   - Bold key numbers and insights
 
-MARKET ANALYSIS EXCERPT:
-${docxExcerpt}
+5. **WHEN UNSURE**: Ask a clarifying question instead of guessing
+${clarificationPrompt}
 
-DATABASE RESULTS:
+═══════════════════════════════════════════════════════════════════════════════
+                        BUDGET TERMINOLOGY REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+• RATECARD SPEND = Published media price (before negotiations)
+• NET SPEND = Actual cost paid (after negotiations) - USE THIS FOR INVESTMENT DISCUSSIONS
+• SAVINGS % = (Ratecard - Net) / Ratecard × 100
+• OFFLINE media (TV, Radio, OOH) has negotiated rates → shows savings
+• ONLINE media (Digital) has no negotiation → Net = Ratecard
+
+═══════════════════════════════════════════════════════════════════════════════
+              🎯 MASTER SUMMARY TABLE (YOUR PRIMARY REFERENCE)
+═══════════════════════════════════════════════════════════════════════════════
+${summaryTable}
+
+═══════════════════════════════════════════════════════════════════════════════
+                    FILTERED QUERY RESULTS (Based on user question)
+═══════════════════════════════════════════════════════════════════════════════
 ${databaseContext}
 
-Today: ${new Date().toISOString().split('T')[0]}
+${questionType.isStrategic && docxExcerpt ? `
+═══════════════════════════════════════════════════════════════════════════════
+                           MARKET INTELLIGENCE
+═══════════════════════════════════════════════════════════════════════════════
+${docxExcerpt}
+` : ''}
+
+${MENA_KNOWLEDGE_BASE ? `
+═══════════════════════════════════════════════════════════════════════════════
+                           KNOWLEDGE BASE
+═══════════════════════════════════════════════════════════════════════════════
+${MENA_KNOWLEDGE_BASE.substring(0, 10000)}
+` : ''}
+
+Today's Date: ${new Date().toISOString().split('T')[0]}
 `;
 
         const validMessages = messages.filter((msg: any) => msg && msg.content && msg.role);
         console.log('Valid messages count:', validMessages.length);
 
         const result = streamText({
-            model: openai('gpt-4o-mini'), // Using mini for higher rate limits (200k TPM vs 30k)
+            model: openai('gpt-4o-mini'),
             system: systemPrompt,
             messages: validMessages,
+            temperature: 0.3, // Lower temperature for more consistent/factual responses
         });
 
         console.log('Streaming response...');
         return result.toTextStreamResponse();
+
     } catch (error: any) {
         console.error('=== AI Chat API Error ===');
         console.error('Error message:', error?.message);
         console.error('Error stack:', error?.stack);
 
+        // Return a user-friendly error message
+        const errorMessage = error?.message?.includes('rate limit')
+            ? 'The AI service is currently busy. Please try again in a few seconds.'
+            : 'I encountered an error processing your request. Please try rephrasing your question.';
+
         return new Response(
             JSON.stringify({
-                error: 'Internal server error',
-                message: error?.message || 'Unknown error',
+                error: 'AI processing error',
+                message: errorMessage,
                 details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
             }),
             {

@@ -6,7 +6,7 @@ import ChartSection from '@/components/ChartSection';
 import SOVAnalysis from '@/components/SOVAnalysis';
 import AIChatSection from '@/components/AIChatSection';
 import HeyGenAvatar from '@/components/HeyGenAvatar';
-import { parseCurrency, getBudgetValue, BudgetView } from '@/utils/format';
+import { parseCurrency, getBudgetValue, BudgetView, formatCompactCurrency } from '@/utils/format';
 import MenaMap from '@/components/MenaMap';
 import { Send, Bot, User, BarChart3, Globe, Filter, X } from 'lucide-react';
 import BackgroundDecorations from '@/components/BackgroundDecorations';
@@ -528,11 +528,11 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold text-[#431412]/70">Ratecard Spend</p>
-                  <p className="text-xl font-extrabold text-[#FF5900]">${Math.round(totalBudget).toLocaleString()}</p>
+                  <p className="text-xl font-extrabold text-[#FF5900]">{formatCompactCurrency(totalBudget)}</p>
                 </div>
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-[#431412]/70">Net Spend</p>
-                  <p className="text-xl font-extrabold text-[#00A86B]">${Math.round(totalNetBudget).toLocaleString()}</p>
+                  <p className="text-xl font-extrabold text-[#00A86B]">{formatCompactCurrency(totalNetBudget)}</p>
                 </div>
                 <p className="text-xs text-[#431412]/50 mt-2">Net = actual negotiated cost (offline) + ratecard (online)</p>
               </div>
@@ -540,7 +540,7 @@ export default function Dashboard() {
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
                 <p className="text-sm font-semibold text-[#431412]/70">Negotiation Savings</p>
                 <p className="text-3xl font-extrabold text-[#8B5CF6] mt-2">{savingsPercentage}%</p>
-                <p className="text-xs text-[#431412]/50 mt-1">${Math.round(savingsAmount).toLocaleString()} saved vs ratecard</p>
+                <p className="text-xs text-[#431412]/50 mt-1">{formatCompactCurrency(savingsAmount)} saved vs ratecard</p>
               </div>
             </div>
           </div>

@@ -26,6 +26,26 @@ export const formatCurrency = (value: number): string => {
     })}`;
 };
 
+// Compact currency format for UI display (e.g., $41.3M, $4.5B)
+export const formatCompactCurrency = (value: number): string => {
+    if (value === 0) return '$0';
+
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+
+    if (absValue >= 1000000000) {
+        return `${sign}$${(absValue / 1000000000).toFixed(1)}B`;
+    }
+    if (absValue >= 1000000) {
+        return `${sign}$${(absValue / 1000000).toFixed(1)}M`;
+    }
+    if (absValue >= 1000) {
+        return `${sign}$${(absValue / 1000).toFixed(1)}K`;
+    }
+
+    return `${sign}$${Math.round(absValue).toLocaleString()}`;
+};
+
 export const parseCurrency = (value: string | number | null | undefined): number => {
     if (value === null || value === undefined) return 0;
     if (typeof value === 'number') return value;
