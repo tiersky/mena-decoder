@@ -306,20 +306,30 @@ SUGGESTION: Try without date filters or check if the brand name is spelled corre
         return `  ${brand}:\n${channels}`;
     }).join('\n\n');
 
-    // Calculate savings percentage
-    const savingsPercentage = totalBudget > 0 ? ((totalBudget - totalNetBudget) / totalBudget * 100).toFixed(1) : '0.0';
+    // Calculate savings
+    const savingsAmount = totalBudget - totalNetBudget;
+    const savingsPercentage = totalBudget > 0 ? ((savingsAmount / totalBudget) * 100).toFixed(1) : '0.0';
+    const hasNetData = records.some(r => r.net_budget && parseCurrency(r.net_budget) !== parseCurrency(r.budget));
+
+    // Count offline vs online records
+    const offlineRecords = records.filter(r => r.media && ['TV', 'RADIO', 'PRINT', 'OOH', 'OUTDOOR'].includes(r.media.toUpperCase()));
+    const onlineRecords = records.filter(r => r.media && r.media.toUpperCase() === 'ONLINE');
 
     return `
 DATABASE QUERY RESULTS (${records.length} campaigns found):
 
 OVERALL STATISTICS:
-- Total Ratecard Budget: ${formatCurrency(totalBudget)} (estimated media value)
-- Total Net Spend: ${formatCurrency(totalNetBudget)} (actual negotiated spend)
-- Savings from Negotiations: ${savingsPercentage}%
+- Total Ratecard Budget: ${formatCurrency(totalBudget)} (published/list price - media value before negotiations)
+- Total Net Spend: ${formatCurrency(totalNetBudget)} (actual negotiated cost paid)
+- Savings from Negotiations: ${formatCurrency(savingsAmount)} (${savingsPercentage}% savings rate)
 - Total Volume: ${totalVolume.toLocaleString()}
 - Total Campaigns: ${records.length}
+- Offline Campaigns (TV/Radio/OOH): ${offlineRecords.length} (has net spend data)
+- Online Campaigns (Digital): ${onlineRecords.length} (net = ratecard, no negotiation data)
 
-NOTE: "Net Spend" = actual negotiated cost (available for offline media). For online media, net equals ratecard.
+INTERPRETATION GUIDE:
+- ${hasNetData ? `This data includes negotiated rates. The ${savingsPercentage}% savings shows media buying effectiveness.` : 'This data is primarily online - net spend equals ratecard (no negotiation margin).'}
+- When discussing budgets: Use NET SPEND for actual investment, RATECARD for media value comparison.
 
 TOP BRANDS (by budget):
 ${Object.entries(brandStats)
@@ -399,11 +409,25 @@ INSTRUCTIONS:
 - Use bullet points for clarity
 - Avoid repetition
 
-BUDGET TERMINOLOGY:
-- "Ratecard Budget" = Estimated media value (what it would cost without negotiations)
-- "Net Spend" = Actual negotiated cost paid (reflects media buying effectiveness)
-- Net spend data is available for OFFLINE media (TV, Radio). For ONLINE media, net equals ratecard.
-- When discussing budgets, mention both if relevant to show negotiation savings.
+BUDGET TERMINOLOGY & MEDIA BUYING CONTEXT:
+- "Ratecard Budget" (also called "Ratecard Spend") = The published/list price for media placements - what it would cost WITHOUT negotiations. This is the estimated media value.
+- "Net Spend" (also called "Net Budget") = The ACTUAL negotiated cost paid after media buying negotiations. This reflects the real money spent.
+- "Savings" or "Negotiation Effectiveness" = The difference between Ratecard and Net Spend, expressed as a percentage. Higher savings % = better negotiation performance.
+
+IMPORTANT DATA DISTINCTIONS:
+- OFFLINE media (TV, Radio, Print, OOH): Has BOTH ratecard AND net spend data. The difference shows negotiation effectiveness.
+- ONLINE media (Digital, Social, Programmatic): Only has ratecard data. Net equals ratecard for online (no negotiation margin).
+
+WHEN TO USE WHICH METRIC:
+- Use "Net Spend" when discussing ACTUAL investment, real costs, or budget allocation decisions
+- Use "Ratecard" when discussing media value, reach/impression equivalents, or comparing against competitors
+- Always mention "savings %" when analyzing offline media to highlight negotiation effectiveness
+- When comparing brands: Use consistent metric (preferably net spend for accuracy)
+
+BUSINESS CONTEXT:
+- Media agencies negotiate discounts on offline media buys (TV, Radio, etc.)
+- A 20-30% savings rate is typical; higher indicates strong agency performance
+- This data helps assess: Are we getting good value? How do our rates compare?
 
 KNOWLEDGE BASE:
 ${MENA_KNOWLEDGE_BASE}
