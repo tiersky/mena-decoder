@@ -33,15 +33,16 @@ export default function ChartSection({ data, budgetView }: ChartSectionProps) {
         const brandBudgetByMonth: Record<string, Record<string, number>> = {};
         const brandTotals: Record<string, number> = {};
 
-        // Helper to parse date in various formats (MM/DD/YYYY or YYYY-MM-DD)
+        // Helper to parse date in various formats (DD/MM/YYYY or YYYY-MM-DD)
         const parseDate = (dateStr: string): { year: number; month: number } | null => {
             if (!dateStr) return null;
 
-            // Try MM/DD/YYYY format first (e.g., "01/04/2024" = April 1, 2024)
-            const mdyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-            if (mdyMatch) {
-                const month = parseInt(mdyMatch[1], 10);
-                const year = parseInt(mdyMatch[3], 10);
+            // Try DD/MM/YYYY format first (e.g., "01/04/2024" = April 1, 2024)
+            // Format: day/month/year - our CSV uses this format
+            const dmyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (dmyMatch) {
+                const month = parseInt(dmyMatch[2], 10); // Second group is MONTH
+                const year = parseInt(dmyMatch[3], 10);
                 return { year, month };
             }
 
