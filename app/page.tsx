@@ -6,7 +6,7 @@ import ChartSection from '@/components/ChartSection';
 import SOVAnalysis from '@/components/SOVAnalysis';
 import AIChatSection from '@/components/AIChatSection';
 import HeyGenAvatar from '@/components/HeyGenAvatar';
-import { parseCurrency } from '@/utils/format';
+import { parseCurrency, getBudgetValue, BudgetView } from '@/utils/format';
 import MenaMap from '@/components/MenaMap';
 import { Send, Bot, User, BarChart3, Globe, Filter, X } from 'lucide-react';
 import BackgroundDecorations from '@/components/BackgroundDecorations';
@@ -24,6 +24,9 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedMedia, setSelectedMedia] = useState('All');
   const [selectedChannel, setSelectedChannel] = useState('All');
+
+  // Budget view toggle (ratecard vs net spend)
+  const [budgetView, setBudgetView] = useState<BudgetView>('net');
 
   // Available filter options
   const [countries, setCountries] = useState<string[]>(['All']);
@@ -321,7 +324,18 @@ export default function Dashboard() {
   // Calculate aggregate metrics
   const campaignCount = filteredStats.length;
   const totalBudget = filteredStats.reduce((acc, curr) => acc + parseCurrency(curr.budget), 0);
+  // Net budget: use net_budget if available (offline), otherwise fallback to budget (online)
+  const totalNetBudget = filteredStats.reduce((acc, curr) => {
+    if (curr.net_budget) {
+      return acc + parseCurrency(curr.net_budget);
+    }
+    return acc + parseCurrency(curr.budget);
+  }, 0);
   const uniqueBrandsCount = new Set(filteredStats.map((s) => s.brand).filter(Boolean)).size;
+
+  // Calculate savings percentage (negotiation effectiveness)
+  const savingsAmount = totalBudget - totalNetBudget;
+  const savingsPercentage = totalBudget > 0 ? ((savingsAmount / totalBudget) * 100).toFixed(1) : '0.0';
 
   const clearFilters = () => {
     setSelectedCountry('All');
@@ -473,9 +487,35 @@ export default function Dashboard() {
 
           {/* KPI Cards */}
           <div className="lg:w-1/2 flex flex-col gap-4">
-            <h2 className="text-2xl font-extrabold text-[#431412]">Market Overview</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-extrabold text-[#431412]">Market Overview</h2>
+              {/* Budget View Toggle */}
+              <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-[#431412]/10">
+                <span className="text-xs font-medium text-[#431412]/70">Chart View:</span>
+                <button
+                  onClick={() => setBudgetView('ratecard')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                    budgetView === 'ratecard'
+                      ? 'bg-[#FF5900] text-white'
+                      : 'text-[#431412]/70 hover:bg-[#431412]/10'
+                  }`}
+                >
+                  Ratecard
+                </button>
+                <button
+                  onClick={() => setBudgetView('net')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                    budgetView === 'net'
+                      ? 'bg-[#00A86B] text-white'
+                      : 'text-[#431412]/70 hover:bg-[#431412]/10'
+                  }`}
+                >
+                  Net
+                </button>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
                 <p className="text-sm font-semibold text-[#431412]/70">Campaigns</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{campaignCount.toLocaleString()}</p>
@@ -484,9 +524,19 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-[#431412]/70">Active Brands</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">{uniqueBrandsCount}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
-                <p className="text-sm font-semibold text-[#431412]/70">Total Budget Spend</p>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
+                <p className="text-sm font-semibold text-[#431412]/70">Negotiation Savings</p>
+                <p className="text-3xl font-extrabold text-[#8B5CF6] mt-2">{savingsPercentage}%</p>
+                <p className="text-xs text-[#431412]/50 mt-1">${savingsAmount.toLocaleString()} saved</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center">
+                <p className="text-sm font-semibold text-[#431412]/70">Total Ratecard Spend</p>
                 <p className="text-3xl font-extrabold text-[#FF5900] mt-2">${totalBudget.toLocaleString()}</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-[#431412]/10 flex flex-col justify-center sm:col-span-2">
+                <p className="text-sm font-semibold text-[#431412]/70">Total Net Spend</p>
+                <p className="text-3xl font-extrabold text-[#00A86B] mt-2">${totalNetBudget.toLocaleString()}</p>
+                <p className="text-xs text-[#431412]/50 mt-1">Actual negotiated cost (offline) + ratecard (online)</p>
               </div>
             </div>
           </div>
@@ -500,12 +550,12 @@ export default function Dashboard() {
             <p className="mt-2 text-[#431412]/70">Loading data...</p>
           </div>
         ) : (
-          <ChartSection data={filteredStats} />
+          <ChartSection data={filteredStats} budgetView={budgetView} />
         )}
 
         {/* SOV Analysis Section */}
         <div className="mt-8">
-          <SOVAnalysis data={stats} />
+          <SOVAnalysis data={stats} budgetView={budgetView} />
         </div>
 
         {/* AI Analyst Section */}

@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Sankey, Tooltip, ResponsiveContainer } from 'recharts';
 import { Filter, DollarSign, BarChart2 } from 'lucide-react';
-import { parseCurrency } from '@/utils/format';
+import { parseCurrency, getBudgetValue, BudgetView } from '@/utils/format';
 
 interface SOVAnalysisProps {
     data: any[];
+    budgetView: BudgetView;
 }
 
 const formatCurrency = (value: number) => {
@@ -34,7 +35,7 @@ const LINK_COLORS = [
     'rgba(132, 204, 22, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgba(244, 63, 94, 0.4)'
 ];
 
-export default function SOVAnalysis({ data }: SOVAnalysisProps) {
+export default function SOVAnalysis({ data, budgetView }: SOVAnalysisProps) {
     const [scope, setScope] = useState<'Overall' | 'Online' | 'Offline'>('Overall');
     const [selectedBrand, setSelectedBrand] = useState<string>('All');
     const [selectedCountry, setSelectedCountry] = useState<string>('All');
@@ -70,10 +71,10 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
 
     // Calculate Stats
     const stats = useMemo(() => {
-        const totalSpend = filteredData.reduce((acc, curr) => acc + parseCurrency(curr.budget), 0);
+        const totalSpend = filteredData.reduce((acc, curr) => acc + getBudgetValue(curr, budgetView), 0);
         const totalVolume = filteredData.reduce((acc, curr) => acc + parseCurrency(curr.volume), 0);
         return { totalSpend, totalVolume };
-    }, [filteredData]);
+    }, [filteredData, budgetView]);
 
     // Transform Data for Sankey with enhanced node tracking
     const sankeyData = useMemo(() => {
@@ -109,7 +110,7 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
             const brandMediaMap = new Map<string, number>();
 
             filteredData.forEach(item => {
-                const budget = parseCurrency(item.budget);
+                const budget = getBudgetValue(item, budgetView);
                 if (budget <= 0) return;
 
                 const media = item.media || 'Unknown';
@@ -147,7 +148,7 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
             const mediaChannelMap = new Map<string, number>();
 
             filteredData.forEach(item => {
-                const budget = parseCurrency(item.budget);
+                const budget = getBudgetValue(item, budgetView);
                 if (budget <= 0) return;
 
                 const brand = item.brand || 'Unknown';
@@ -215,7 +216,7 @@ export default function SOVAnalysis({ data }: SOVAnalysisProps) {
         });
 
         return { nodes, links, nodeColors, nodeLevels, nodeValues, showChannels };
-    }, [filteredData, selectedBrand]);
+    }, [filteredData, selectedBrand, budgetView]);
 
     // Custom node renderer with colors and black text with percentages
     const CustomNode = ({ x, y, width, height, index, payload }: any) => {

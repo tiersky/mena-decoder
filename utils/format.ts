@@ -36,3 +36,26 @@ export const parseCurrency = (value: string | number | null | undefined): number
 
     return isNaN(parsed) ? 0 : parsed;
 };
+
+// Budget view type for toggle between ratecard and net spend
+export type BudgetView = 'ratecard' | 'net';
+
+// Interface for competitive stats data with optional net_budget
+export interface CompetitiveStatsItem {
+    budget: string;
+    net_budget?: string | null;
+    [key: string]: unknown;
+}
+
+// Helper to get the appropriate budget value based on view selection
+// For 'net' view: uses net_budget if available, otherwise falls back to budget
+// For 'ratecard' view: always uses budget (ratecard value)
+export const getBudgetValue = (
+    item: CompetitiveStatsItem,
+    view: BudgetView
+): number => {
+    if (view === 'net' && item.net_budget) {
+        return parseCurrency(item.net_budget);
+    }
+    return parseCurrency(item.budget);
+};

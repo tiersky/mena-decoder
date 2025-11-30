@@ -18,15 +18,16 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
-import { parseCurrency, formatChartNumber, formatCurrency } from '@/utils/format';
+import { parseCurrency, formatChartNumber, formatCurrency, getBudgetValue, BudgetView } from '@/utils/format';
 
 interface ChartSectionProps {
     data: any[];
+    budgetView: BudgetView;
 }
 
 const COLORS = ['#FF5900', '#CFFF00', '#431412', '#F59E0B', '#10B981', '#E55000', '#8B5CF6', '#14B8A6'];
 
-export default function ChartSection({ data }: ChartSectionProps) {
+export default function ChartSection({ data, budgetView }: ChartSectionProps) {
     // Brand Budget Over Time
     const brandBudgetData = React.useMemo(() => {
         const brandBudgetByMonth: Record<string, Record<string, number>> = {};
@@ -37,7 +38,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
             const date = new Date(item.date);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             const brand = item.brand;
-            const budget = parseCurrency(item.budget);
+            const budget = getBudgetValue(item, budgetView);
 
             if (!brandBudgetByMonth[monthKey]) {
                 brandBudgetByMonth[monthKey] = {};
@@ -57,7 +58,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                 return acc;
             }, {} as Record<string, number>),
         }));
-    }, [data]);
+    }, [data, budgetView]);
 
     // Top brands by budget
     const topBrands = React.useMemo(() => {
@@ -66,7 +67,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
         data.forEach((item) => {
             if (!item.brand || !item.budget) return;
             const brand = item.brand;
-            const budget = parseCurrency(item.budget);
+            const budget = getBudgetValue(item, budgetView);
             brandTotals[brand] = (brandTotals[brand] || 0) + budget;
         });
 
@@ -74,7 +75,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
             .map(([brand, budget]) => ({ brand, budget }))
             .sort((a, b) => b.budget - a.budget)
             .slice(0, 15);
-    }, [data]);
+    }, [data, budgetView]);
 
     // Category breakdown (Pie Chart)
     const categoryData = React.useMemo(() => {
@@ -83,7 +84,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
         data.forEach((item) => {
             if (!item.category || !item.budget) return;
             const category = item.category;
-            const budget = parseCurrency(item.budget);
+            const budget = getBudgetValue(item, budgetView);
             categoryTotals[category] = (categoryTotals[category] || 0) + budget;
         });
 
@@ -91,7 +92,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value)
             .slice(0, 8);
-    }, [data]);
+    }, [data, budgetView]);
 
     // Brand aggregated data for scatter plot
     const brandScatterData = React.useMemo(() => {
@@ -100,7 +101,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
         data.forEach((item) => {
             if (!item.brand || !item.budget) return;
             const brand = item.brand;
-            const budget = parseCurrency(item.budget);
+            const budget = getBudgetValue(item, budgetView);
 
             if (!brandTotals[brand]) {
                 brandTotals[brand] = { campaigns: 0, budget: 0 };
@@ -110,13 +111,13 @@ export default function ChartSection({ data }: ChartSectionProps) {
         });
 
         return Object.entries(brandTotals)
-            .map(([brand, data]) => ({
+            .map(([brand, totals]) => ({
                 brand,
-                campaigns: data.campaigns,
-                budget: data.budget,
+                campaigns: totals.campaigns,
+                budget: totals.budget,
             }))
             .sort((a, b) => a.campaigns - b.campaigns); // Sort by campaigns for ordered X-axis
-    }, [data]);
+    }, [data, budgetView]);
 
     // Brand x Country Heatmap Data
     const brandCountryHeatmap = React.useMemo(() => {
@@ -126,7 +127,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
             if (!item.brand || !item.country || !item.budget) return;
             const brand = item.brand;
             const country = item.country;
-            const budget = parseCurrency(item.budget);
+            const budget = getBudgetValue(item, budgetView);
 
             if (!heatmapData[brand]) {
                 heatmapData[brand] = {};
@@ -154,7 +155,7 @@ export default function ChartSection({ data }: ChartSectionProps) {
                 return acc;
             }, {} as Record<string, number>),
         }));
-    }, [data]);
+    }, [data, budgetView]);
 
     const allCountries = React.useMemo(
         () => Array.from(new Set(data.map((item) => item.country).filter(Boolean))),

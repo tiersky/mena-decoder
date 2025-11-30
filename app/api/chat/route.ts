@@ -205,16 +205,24 @@ Applied filters were: ${JSON.stringify(appliedFilters, null, 2)}
 SUGGESTION: Try without date filters or check if the brand name is spelled correctly. The database contains data for brands like: Talabat, Careem, Deliveroo, Noon, Keeta, Amazon, Jahez, HungerStation, etc.`;
     }
 
-    // Calculate aggregates
+    // Calculate aggregates (ratecard budget)
     const totalBudget = records.reduce((acc, r) => acc + parseCurrency(r.budget), 0);
+    // Calculate net budget (actual spend for offline, fallback to budget for online)
+    const totalNetBudget = records.reduce((acc, r) => {
+        if (r.net_budget) {
+            return acc + parseCurrency(r.net_budget);
+        }
+        return acc + parseCurrency(r.budget);
+    }, 0);
     const totalVolume = records.reduce((acc, r) => acc + parseCurrency(r.volume), 0);
 
-    // Group by brand
-    const brandStats: Record<string, { budget: number; campaigns: number; volume: number }> = {};
+    // Group by brand (including net_budget)
+    const brandStats: Record<string, { budget: number; netBudget: number; campaigns: number; volume: number }> = {};
     records.forEach((r) => {
         const brand = r.brand || 'Unknown';
-        if (!brandStats[brand]) brandStats[brand] = { budget: 0, campaigns: 0, volume: 0 };
+        if (!brandStats[brand]) brandStats[brand] = { budget: 0, netBudget: 0, campaigns: 0, volume: 0 };
         brandStats[brand].budget += parseCurrency(r.budget);
+        brandStats[brand].netBudget += r.net_budget ? parseCurrency(r.net_budget) : parseCurrency(r.budget);
         brandStats[brand].campaigns += 1;
         brandStats[brand].volume += parseCurrency(r.volume);
     });
@@ -298,20 +306,27 @@ SUGGESTION: Try without date filters or check if the brand name is spelled corre
         return `  ${brand}:\n${channels}`;
     }).join('\n\n');
 
+    // Calculate savings percentage
+    const savingsPercentage = totalBudget > 0 ? ((totalBudget - totalNetBudget) / totalBudget * 100).toFixed(1) : '0.0';
+
     return `
 DATABASE QUERY RESULTS (${records.length} campaigns found):
 
 OVERALL STATISTICS:
-- Total Budget: ${formatCurrency(totalBudget)}
+- Total Ratecard Budget: ${formatCurrency(totalBudget)} (estimated media value)
+- Total Net Spend: ${formatCurrency(totalNetBudget)} (actual negotiated spend)
+- Savings from Negotiations: ${savingsPercentage}%
 - Total Volume: ${totalVolume.toLocaleString()}
 - Total Campaigns: ${records.length}
+
+NOTE: "Net Spend" = actual negotiated cost (available for offline media). For online media, net equals ratecard.
 
 TOP BRANDS (by budget):
 ${Object.entries(brandStats)
     .sort((a, b) => b[1].budget - a[1].budget)
     .slice(0, 10)
     .map(([brand, stats]) =>
-        `  - ${brand}: ${formatCurrency(stats.budget)}, ${stats.campaigns} campaigns, ${stats.volume.toLocaleString()} volume`
+        `  - ${brand}: Ratecard ${formatCurrency(stats.budget)}, Net ${formatCurrency(stats.netBudget)}, ${stats.campaigns} campaigns`
     )
     .join('\n')}
 
@@ -383,6 +398,12 @@ INSTRUCTIONS:
 - **IMPORTANT: Keep answers CONCISE (max 500 words)**
 - Use bullet points for clarity
 - Avoid repetition
+
+BUDGET TERMINOLOGY:
+- "Ratecard Budget" = Estimated media value (what it would cost without negotiations)
+- "Net Spend" = Actual negotiated cost paid (reflects media buying effectiveness)
+- Net spend data is available for OFFLINE media (TV, Radio). For ONLINE media, net equals ratecard.
+- When discussing budgets, mention both if relevant to show negotiation savings.
 
 KNOWLEDGE BASE:
 ${MENA_KNOWLEDGE_BASE}
