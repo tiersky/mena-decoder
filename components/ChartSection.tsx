@@ -46,8 +46,8 @@ export default function ChartSection({ data, budgetView }: ChartSectionProps) {
                 return { year, month };
             }
 
-            // Try YYYY-MM-DD format (e.g., "2024-04-01")
-            const ymdMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            // Try YYYY-MM-DD or ISO format (e.g., "2024-04-01" or "2024-04-01T00:00:00")
+            const ymdMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
             if (ymdMatch) {
                 const year = parseInt(ymdMatch[1], 10);
                 const month = parseInt(ymdMatch[2], 10);
