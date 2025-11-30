@@ -28,14 +28,19 @@ interface ChartSectionProps {
 const COLORS = ['#FF5900', '#CFFF00', '#431412', '#F59E0B', '#10B981', '#E55000', '#8B5CF6', '#14B8A6'];
 
 export default function ChartSection({ data, budgetView }: ChartSectionProps) {
-    // Brand Budget Over Time
+    // Brand Budget Over Time (Monthly view with top 8 brands by total budget)
     const brandBudgetData = React.useMemo(() => {
         const brandBudgetByMonth: Record<string, Record<string, number>> = {};
+        const brandTotals: Record<string, number> = {};
 
+        // First pass: calculate monthly budgets and total per brand
         data.forEach((item) => {
             if (!item.date || !item.brand || !item.budget) return;
 
             const date = new Date(item.date);
+            // Ensure valid date
+            if (isNaN(date.getTime())) return;
+
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             const brand = item.brand;
             const budget = getBudgetValue(item, budgetView);
@@ -44,16 +49,22 @@ export default function ChartSection({ data, budgetView }: ChartSectionProps) {
                 brandBudgetByMonth[monthKey] = {};
             }
             brandBudgetByMonth[monthKey][brand] = (brandBudgetByMonth[monthKey][brand] || 0) + budget;
+
+            // Track total budget per brand for ranking
+            brandTotals[brand] = (brandTotals[brand] || 0) + budget;
         });
 
+        // Get top 8 brands by total budget (not alphabetically)
+        const topBrandsByBudget = Object.entries(brandTotals)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8)
+            .map(([brand]) => brand);
+
         const sortedMonths = Object.keys(brandBudgetByMonth).sort();
-        const allBrands = Array.from(
-            new Set(data.map((item) => item.brand).filter(Boolean))
-        ).slice(0, 8); // Limit to top 8 brands for better visualization
 
         return sortedMonths.map((month) => ({
             month,
-            ...allBrands.reduce((acc, brand) => {
+            ...topBrandsByBudget.reduce((acc, brand) => {
                 acc[brand] = brandBudgetByMonth[month][brand] || 0;
                 return acc;
             }, {} as Record<string, number>),
