@@ -5,7 +5,7 @@ import { createSupabaseClient } from '@/utils/supabase/client';
 import ChartSection from '@/components/ChartSection';
 import SOVAnalysis from '@/components/SOVAnalysis';
 import AIChatSection from '@/components/AIChatSection';
-import HeyGenAvatar from '@/components/HeyGenAvatar';
+// import HeyGenAvatar from '@/components/HeyGenAvatar';
 import { parseCurrency, getBudgetValue, BudgetView, formatCompactCurrency } from '@/utils/format';
 import MenaMap from '@/components/MenaMap';
 import { Send, Bot, User, BarChart3, Globe, Filter, X } from 'lucide-react';
@@ -573,7 +573,7 @@ export default function Dashboard() {
       </main>
 
       {/* HeyGen AI Avatar - Bottom Right Corner */}
-      <HeyGenAvatar />
+      {/* <HeyGenAvatar /> */}
     </div>
   );
 }
